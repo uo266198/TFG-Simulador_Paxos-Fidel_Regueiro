@@ -1,5 +1,5 @@
 ﻿# Trabajo de Fin de Grado
  
- Simulador del protocolo de Paxos
+ Simulador del protocolo Paxos
  
  Fidel Regueiro López
