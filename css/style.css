@@ -1,0 +1,29 @@
+body{
+    overflow: hidden;
+}
+
+.f-small{
+    font-size: 25px;
+}
+
+.f-medium{
+    font-size: 35px;
+}
+
+.f-big{
+    font-size: 50px;
+}
+
+.box {
+    width: 300px;
+    height: 300px;
+    border: 1px solid black;
+    padding: 2px 4px;
+    overflow-y: scroll;
+    overflow-x: auto;
+}
+  
+.log {
+    margin-top: 8px;
+    font-family: monospace;
+}
