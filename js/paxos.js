@@ -1,2 +1,1 @@
-//
-//
+// De primeras dibujamos 3 nodos
