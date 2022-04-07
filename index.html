@@ -34,10 +34,10 @@
                         </svg>
                     </button>
                 <p class="border-bottom text-white text-center f-small mt-3 mb-0">Tiempo Simulación</p>
-                <p class="text-white text-center f-big mb-0">00:00:00</p>
+                <p id="reloj" class="text-white text-center f-big mb-0">00:00</p>
                                                  
                 <div class="text-center">
-                    <button type="button" class="btn btn-primary btn-lg ">
+                    <button type="button" id="btnPlay" class="btn btn-danger btn-lg ">
                         <svg width="30" height="30" fill="currentColor" class="bi bi-play-fill" viewBox="0 0 16 16">
                             <path d="m11.596 8.697-6.363 3.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01 1.233-.696l6.363 3.692a.802.802 0 0 1 0 1.393z"/>
                         </svg>
@@ -45,6 +45,11 @@
                     <button type="button" class="btn btn-primary btn-lg ">
                         <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" class="bi bi-skip-forward-fill" viewBox="0 0 16 16">
                             <path d="M15.5 3.5a.5.5 0 0 1 .5.5v8a.5.5 0 0 1-1 0V8.753l-6.267 3.636c-.54.313-1.233-.066-1.233-.697v-2.94l-6.267 3.636C.693 12.703 0 12.324 0 11.693V4.308c0-.63.693-1.01 1.233-.696L7.5 7.248v-2.94c0-.63.693-1.01 1.233-.696L15 7.248V4a.5.5 0 0 1 .5-.5z"/>
+                        </svg>
+                    </button>   
+                    <button type="button" id="btnSpeed" class="btn btn-primary btn-lg"> 
+                        <svg  width="35" height="30" fill="currentColor" class="bi bi-skip-forward-fill" viewBox="0 0 20 15">
+                            <text id="btnSpeedText" x="0" y="15" fi>x1</text>
                         </svg>
                     </button>   
                 </div>   
@@ -58,14 +63,24 @@
                 </div>
             </div>
 
-            <div class="col p-2 bg-secondary  h-100 w-100 bg-warning">
-                       <div class="circulo"></div>
+            <div class="col p-2 bg-secondary  h-100 w-100">
+                <div id="nodo1" class="btn nodo1 font-weight-bolder">NODO 1</div>
+                <div id="nodo2" class="btn nodo2 font-weight-bolder">NODO 2</div>
+                <div id="nodo3" class="btn nodo3 font-weight-bolder">NODO 3</div>
+
+                <div id="modalInfo" class="modal">
+                <div class="modal-content">
+                    <span class="close">&times;</span>
+                    <p>Aquí va la información del nodo</p>
+                    <div id="btnBorrar" class="btn btn-danger  font-weight-bolder">Borrar nodo</div>
+                </div>
             </div>
         </div>      
     </div>     
 </body>
 
 <script src="/jquery/jquery-3.6.0.js"></script>
+<script src="/popper/popper.min.js"></script>
 <script src="/bootstrap/bootstrap.js"></script>
 <script src="/anime/anime.min.js"></script>
 <script src="/js/animations.js"></script>
