@@ -68,7 +68,7 @@ window.onclick = function(event) {
   }
 }
 
-
+// REVISAR NO FUNCIONA BIEN
 //Cambio de velocidad de la simulación
 $("#btnSpeed").click(function(){
     if(speed == 1000) {
@@ -118,10 +118,6 @@ function startTime() {
     var secsStr = secs;
     var minsStr = mins;
 
-    if(decimas == 99){
-        decimas = 0;
-        secs ++;
-    }
     if(secs == 60){
         secs = 0;
         mins ++;
