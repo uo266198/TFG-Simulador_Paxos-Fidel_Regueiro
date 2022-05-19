@@ -1,58 +1,45 @@
 import Timer from './timer.js';
+import enviaMensaje from './gestionaEventos.js'
+import Nodo from './nodos.js'
+import {Prepara, Promesa, Acepta, Aceptado} from './mensaje.js';
 
 //Clase que regula la simulación
 
-// De primeras dibujamos 3 nodos con sus respectivos botones, hay que mira cuál es el máximo de nodos posibles sin que sean demasiados.
-// Luego se asignan los roles iniciales y se espera a que el usuario indique un proposer.
-// Se lanza la fase de preparación
-
-//Tenemos 3 nodos iniciales a la espera de que el usuario elija uno y un valor a proponer.
-//Entonces comienza la simulación.
-
-//Fase 0: simulación parada
-
-let speed = 1000;
-
-let timerSim = new Timer(speed, true);
-
-let nodeDist = 7;
+let velocidad = 1000;
+let timerSim = new Timer(velocidad, true);
+let nodoDist = 7;
 let radio = 2;
-let numNodes = 3;
-const maxNodes = 9;
-
+let numNodos = 3;
+const MAX_NODOS = 9;
 var svgNS = "http://www.w3.org/2000/svg"; 
-
 let color = "rgb(57, 109, 242)";
+let nodoActual;
+const listaNodos = [];
 
-let arrayEvent = [];
+let started = false;
 
 
-//Lista de nodosconsideramos que el máximo de nodos es 9
-// posiciones iniciales a 0, si están siendo usadas o no, es indicado por la función que controla los nodos en UI
-var listNodes =[
-    {id: 0, x: 0, y: 0, used: false},
-    {id: 1, x: 0, y: 0, used: false},
-    {id: 2, x: 0, y: 0, used: false},
-    {id: 3, x: 0, y: 0, used: false},
-    {id: 4, x: 0, y: 0, used: false},
-    {id: 5, x: 0, y: 0, used: false},
-    {id: 6, x: 0, y: 0, used: false},
-    {id: 7, x: 0, y: 0, used: false},
-    {id: 8, x: 0, y: 0, used: false}
-];
-
-createPolygon();
+//Abrimos el modal de opciones iniciales de la sim
+openModalInicio();
 
 ///////////////////////////////////////////////////////////////
 ///////////////////////---FUNCIONES---/////////////////////////
 ///////////////////////////////////////////////////////////////
 
+function inicio(){
+    escribeLog("Esperando una propuesta.");
+    escribeLog("Si no, un nodo se propondrá como lider automáticamente. ");
+    createPolygon();
+    reanudaSim();
 
-// Crea un nodo en las coordenadas indicadas (x, y) y el radio (r), junto a su color
-function createNode(x, y, r, color, id)
+    
+}
+
+// Crea un nodo en las coordenadas indicadas (x, y) y el radio (r)
+function creaNodos(x, y, r, color, id)
 {
     var circulo = document.createElementNS(svgNS,"circle");
-    circulo.setAttributeNS(null,"id","nodo");
+    circulo.setAttributeNS(null,"id","nodo"+id);
     circulo.setAttributeNS(null,"cx",x);
     circulo.setAttributeNS(null,"cy",y);
     circulo.setAttributeNS(null,"r",r);
@@ -63,7 +50,7 @@ function createNode(x, y, r, color, id)
     circulo.setAttribute("data-key", id);
 
     //CAMBIAR
-    circulo.addEventListener("click", openModal);
+    circulo.addEventListener("click", openModalInfo);
 
     document.getElementById("svgFrame").appendChild(circulo);
 } 
@@ -71,83 +58,91 @@ function createNode(x, y, r, color, id)
 
 // Crea el polígono regular que forman los distintos nodos según el número de estos y por lo tanto la posición de cada nodo
 function createPolygon(){
-    for (var i = 0; i <numNodes; i++){
-        var posX = Math.cos(i * 2 * Math.PI / numNodes + Math.PI/2 - Math.PI/numNodes)*nodeDist;
-        var posY = Math.sin(i * 2 * Math.PI / numNodes + Math.PI/2 - Math.PI/numNodes)*nodeDist;
-
-        //Posición del nodo
-        listNodes[i].x =posX;
-        listNodes[i].y =posY;
-        listNodes[i].used = true;
-
-        createNode(posX,posY, radio, color, i);
+    for (let i = 0; i <numNodos; i++){
+        let posX = Math.cos(i * 2 * Math.PI / numNodos + Math.PI/2 - Math.PI/numNodos)*nodoDist;
+        let posY = Math.sin(i * 2 * Math.PI / numNodos + Math.PI/2 - Math.PI/numNodos)*nodoDist;
+        listaNodos.push(new Nodo(i, posX, posY))
+        creaNodos(posX,posY, radio, color, i);
     }
-    drawInfo();
+    infoNodos();
 }
 
 // Dibuja los nombres de cada nodo
-function drawInfo(){
-    for(let i=0; i<listNodes.length; i++){
-        if(listNodes[i].used == true){
-            var textoSVG = document.createElementNS(svgNS,"text"); 
-            textoSVG.setAttributeNS(null,"id","textoSVG");
-            textoSVG.setAttributeNS(null,"x", listNodes[i].x);
-            textoSVG.setAttributeNS(null,"y", listNodes[i].y - 0.9);
-            textoSVG.setAttributeNS(null,"font-size",0.5);
-            textoSVG.setAttributeNS(null,"text-anchor", "middle");
-            textoSVG.setAttributeNS(null,"pointer-events","none");
+function infoNodos(){
+    for(let i=0; i<listaNodos.length; i++){
+        var textoSVG = document.createElementNS(svgNS,"text"); 
+        textoSVG.setAttributeNS(null,"id","textoSVG");
+        textoSVG.setAttributeNS(null,"x", listaNodos[i].x);
+        textoSVG.setAttributeNS(null,"y", listaNodos[i].y - 0.9);
+        textoSVG.setAttributeNS(null,"font-size",0.5);
+        textoSVG.setAttributeNS(null,"text-anchor", "middle");
+        textoSVG.setAttributeNS(null,"pointer-events","none");
 
-            var texto = document.createTextNode("NODO "+i);
-            textoSVG.appendChild(texto);
-            document.getElementById("svgFrame").appendChild(textoSVG);
+        var texto = document.createTextNode("NODO "+i);
+        
+        textoSVG.appendChild(texto);
+        document.getElementById("svgFrame").appendChild(textoSVG);
 
-            console.log(listNodes[i]);
-        }      
-    }
+        //Referencia aquí, y no al crear el nodo
+        listaNodos[i].ref = $("#nodo"+i);
+    }    
 }
 
 //Elimina todos los nodos para volver a crearlos así como el texto que los acompaña
-function removeNodes(){
+function borraNodos(){
     var list = document.getElementById("svgFrame");
     while (list.hasChildNodes()) {
       list.removeChild(list.firstChild);
     }
+}
 
-    //Si el nodo está por encima de los actuales, "no existe"  y no se puede mostrar su información
-    for(var i=numNodes-1; i<maxNodes; i++){
-        listNodes[i].used = false;
+function escribeLog(texto){
+    $("#logText").append("["+timerSim.getTimeString()+"] " + texto+"<br/>");
+}
+
+//Abre el modal que muestra la información del nodo
+function openModalInfo(e){
+    $("#modalInfo").modal('show');
+    nodoActual = this.dataset.key;
+    $("#modalTitle").text("Información del nodo " + this.dataset.key);
+    $("#modalEstado").text("ESTADO:       "+ listaNodos[nodoActual].estado);
+
+    if(listaNodos[nodoActual].enUso){
+        $('#btnSuspender').text("Suspender nodo");
+        $('#btnSuspender').removeClass('btn-primary');
+        $('#btnSuspender').addClass('btn-danger');
     }
 
+    else{
+        $('#btnSuspender').text("Reactivar");
+        $('#btnSuspender').removeClass('btn-danger');
+        $('#btnSuspender').addClass('btn-primary');
+    }
+    
+}
+
+export function getListaNodos(){
+    return listaNodos;
 }
 
 
 //Abre el modal que muestra la información del nodo
-function openModal(e){
-    //console.log(this.dataset.key);
-    $("#modalInfo").modal('show');
-    $("#modalTitle").text("Información del nodo " + this.dataset.key);
-
-
-
+function openModalInicio(){
+    $("#modalInicio").modal('show');
 }
 
-function resumeSim(){
+function reanudaSim(){
     $("#btnPlay").attr('class', "btn btn-primary btn-lg ");
     $("#btnPlay").children('svg').children('path').attr('d', "M5.5 3.5A1.5 1.5 0 0 1 7 5v6a1.5 1.5 0 0 1-3 0V5a1.5 1.5 0 0 1 1.5-1.5zm5 0A1.5 1.5 0 0 1 12 5v6a1.5 1.5 0 0 1-3 0V5a1.5 1.5 0 0 1 1.5-1.5z");
-    //console.log(timerSim.mins);
-    timerSim.resumeTimer();
+    timerSim.reanudaTimer();
 }
 
-function pauseSim(){
+function pausaSim(){
     $("#btnPlay").attr('class', "btn btn-danger btn-lg ");
     $("#btnPlay").children('svg').children('path').attr('d', "m11.596 8.697-6.363 3.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01 1.233-.696l6.363 3.692a.802.802 0 0 1 0 1.393z");
-    timerSim.pauseTimer();
+    timerSim.pausaTimer();
 }
 
-
-//Fase 1: preparación
-
-//Fase 2: aceptación
 
 
 
@@ -160,42 +155,99 @@ function pauseSim(){
 
 //Cambio de velocidad de la simulación
 $("#btnSpeed").click(function(){
-    if(timerSim.speed == 1000) {
+    if(timerSim.velocidad== 1000) {
         $("#btnSpeedText").text("x2");
-        timerSim.speed = 500;
+        timerSim.velocidad = 500;
         
     }
-    else if (timerSim.speed == 500){
+    else if (timerSim.velocidad == 500){
         $("#btnSpeedText").text("x3");
-        timerSim.speed = 333;
+        timerSim.velocidad = 333;
     }
     else {
         $("#btnSpeedText").text("x1");
-        timerSim.speed = 1000;
+        timerSim.velocidad = 1000;
     }
 
-    pauseSim();
-    resumeSim();
+    pausaSim();
+    reanudaSim();
 });
 
 //Para o continua la simulación
 $("#btnPlay").click(function(){ 
-    if(timerSim.paused){
-        //resumeTimer();
-        resumeSim();
+    if(timerSim.pausado){
+        reanudaSim();
     }  
     else{
-        //pauseTimer();
-        pauseSim();
+        pausaSim();
     }
 });
 
+
+//////////////////
+// TAL VEZ SOBRA// 
+/////////////////
+
 //Añade un nuevo nodo
-$("#btnAdd").click(function(){ 
-    numNodes++
-    if(numNodes > maxNodes){
-        numNodes = 3;
+/*$("#btnAdd").click(function(){ 
+    numNodos++
+    if(numNodos > MAX_NODOS){
+        numNodos = 3;
     }
-    removeNodes();
+    borraNodos();
     createPolygon();
+});*/
+
+
+$("#btnProponer").click(function(){ 
+    //listaNodos[nodoActual].setEstado("Proponente");
+    let nodo = listaNodos[nodoActual];
+    var propuesta = $("#textPropuesta").val();
+    if(propuesta !=""){
+        escribeLog("Nodo "+nodoActual+" se prepara para proponer el valor:  \""+ propuesta+"\"");
+
+
+        //?
+        nodo.setProponente();
+
+        let msg = new Prepara(nodo.id, 0);
+        enviaMensaje(msg);
+    }  
 });
+
+
+$("#btnAcepta").click(function(){ 
+    $("#modalInicio").modal('hide');
+    inicio();
+});
+
+
+$('.dropdown-inverse li > a').click(function(e){
+    $('.status').text(this.innerHTML);
+    numNodos =  $('.status').text();
+
+});
+
+
+$('#btnSuspender').click(function(e){
+    if(listaNodos[nodoActual].enUso){
+        listaNodos[nodoActual].desactivar();
+        $('#btnSuspender').text("Reactivar");
+        $('#btnSuspender').removeClass('btn-danger');
+        $('#btnSuspender').addClass('btn-primary');
+    }
+
+    else{
+        listaNodos[nodoActual].activar();
+        $('#btnSuspender').text("Suspender nodo");
+        $('#btnSuspender').removeClass('btn-primary');
+        $('#btnSuspender').addClass('btn-danger');
+    }
+   
+});
+
+
+
+export default{
+    escribeLog
+}

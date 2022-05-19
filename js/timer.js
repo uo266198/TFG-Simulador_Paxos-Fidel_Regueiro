@@ -1,7 +1,7 @@
 export default class Timer{
-  constructor(speed, ppal) {
-    this.speed = speed;
-    this.paused = true;
+  constructor(velocidad, ppal) {
+    this.velocidad = velocidad;
+    this.pausado = true;
     this.ppal = ppal;
     this.mins = 0;
     this.secs = 0;
@@ -34,17 +34,19 @@ export default class Timer{
     }
   }
 
-  pauseTimer(){
-    this.paused = true;
+  pausaTimer(){
+    this.pausado = true;
     clearInterval(this.timer);  
 }
 
-  resumeTimer(){
-    this.paused = false; 
-    this.timer = setInterval(function() {this.startTime()}.bind(this) ,this.speed);  
+  reanudaTimer(){
+    this.pausado = false; 
+    this.timer = setInterval(function() {this.startTime()}.bind(this) ,this.velocidad);  
   }
 
   getTimeString(){
     return this.minsStr + ":" + this.secsStr;
   }
+
+
 }
