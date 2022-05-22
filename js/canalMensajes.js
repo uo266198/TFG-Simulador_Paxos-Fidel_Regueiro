@@ -11,7 +11,7 @@ export default class CanalMensajes{
 		}
 	}
 
-	recibeMensaje(mensaje){
+	enviaMensaje(mensaje){
 		this.canalEnvios.postMessage(mensaje);
 		
 	}

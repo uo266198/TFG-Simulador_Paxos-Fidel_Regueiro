@@ -1,38 +1,49 @@
 class Mensaje {
 	constructor(sourceId) {
         this.sourceId = sourceId;
+		this.tipoMensaje = "MENSAJE";
 	}	
 }
 
-export default class Prepara extends Mensaje {
+export class PreparaMsg extends Mensaje {
 	constructor(sourceId, rondaActual){
 		super(sourceId);
 		this.rondaActual = rondaActual;
+		this.tipoMensaje = "PREPARA";
 	}
 }
 
-class Promesa extends Mensaje {
+export class PromesaMsg extends Mensaje {
 	constructor(sourceId, rondaActual, rondaAnterior){
 		super(sourceId);
 		this.rondaActual = rondaActual;
 		this.rondaAnterior = rondaAnterior;
+		this.tipoMensaje = "PROMESA";
 	}
 }
 
-class Acepta extends Mensaje {
+export class AceptaMsg extends Mensaje {
 	constructor(sourceId, rondaActual, valor){
 		super(sourceId);
 		this.rondaActual = rondaActual;
 		this.valor = valor;
+		this.tipoMensaje = "ACEPTA";
 	}
 }
 
-class Aceptado extends Mensaje {
+export class AceptadoMsg extends Mensaje {
 	constructor(sourceId, rondaActual, valor){
 		super(sourceId);
 		this.rondaActual = rondaActual;
 		this.valor = valor;
+		this.tipoMensaje = "ACEPTADO";
 	}
 }
 
-export  {Prepara, Promesa, Acepta, Aceptado};
+export class IniciandoMsg extends Mensaje {
+	constructor(sourceId, canal){
+		super(sourceId);
+		this.canal = canal;
+		this.tipoMensaje = "INICIANDO";
+	}
+}
