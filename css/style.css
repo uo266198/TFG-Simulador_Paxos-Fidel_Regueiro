@@ -5,6 +5,9 @@ html,body {
     height: 100%;
 }
 
+.f-smaller{
+    font-size: 15px;
+}
 .f-small{
     font-size: 25px;
 }
@@ -32,4 +35,13 @@ html,body {
 
 circle:hover{ 
     opacity: 30%; 
+}
+.slidecontainer{
+    margin-left: 10%;
+    margin-right: 10%;
+}
+.slider {
+    width: 100%; /* Full-width */
+    height: 20%; /* Specified height */
+    
 }

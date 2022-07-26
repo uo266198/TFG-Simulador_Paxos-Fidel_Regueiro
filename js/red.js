@@ -1,48 +1,55 @@
-//ESTA CLASE NO SE USA DE MOMENTO
-//A l hacer esta clase como intermediaria entre  entre la red y los nodos, (si se ejecuta como worker) al ejecutarse en otro hilo, pierde el acceso al contexto del hilo principal
-// y por lo tanto a cualquier evento que modifique la interfaz
+import {Channel}  from "./channels.js";
+import {animaEnvioDatos} from './animations.js'
 
-var probFalloRed = 0;
-var workersRed = [];
-var nodos = [];
-var iniciado = false;
-
-
-
-
-self.onmessage = event =>{
-
- 
-   
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+class Red {
+    constructor() {
+        this.input = new Channel();
+        this.nodos_registrados = [];
 
-function reciboMensajeRed(mensajeRed){
-    switch(mensajeRed.data.tipoMensaje){
-        case("PREPARA"):
-            console.log("LA RED HA RECIBIDO PREPARA DE PARTE DEL NODO " + mensajeRed.data.sourceId);
-            enviaBroadcast();
-            break;
-        
+        //await Promise.all(this.bucle_simulacion());
+    }
+
+    async bucle_simulacion() {
+        this.running = true;
+        ///console.log("Proceso de red arrancado");
+        while (this.running) {
+            let msg, dst, src;
+            [msg, dst, src] = await this.input.shift();
+            //if (msg == "FIN_SIMULACION") break;
+            //console.log("Mensaje a enviar " + msg[0] + " por parte de "+ src + " hasta "+dst);
+            this.enviar(msg, dst, src);
+        }
+        console.log("Proceso de red terminado");
+    }
+
+    async enviar(msg, dst, src) {
+        for (let i=0; i<dst.length; i++ ){
+                if(this.nodos_registrados[dst[i]].id != src){
+                    //await sleep(1000);
+                    //console.log("SRC:" + this.nodos_registrados[dst[i]].id);
+                    await animaEnvioDatos(src,this.nodos_registrados[dst[i]].id);
+                    this.nodos_registrados[dst[i]].recv_chn.push([msg, src]);
+                }
+        }
+    }
+
+    detener_simulacion() {
+        this.running = false;
+        this.input.push(["FIN_SIMULACION", -1, -1]);
+    }
+
+    registrar_nodo(nodo) {
+        this.nodos_registrados[nodo.id] = nodo;
+    }
+
+    async repartir(msg, dst, src) {
+        await this.input.push([msg, dst, src]);
     }
 }
 
-function creaWorkers(numNodos){
-    for(let i = 0; i<numNodos; i++ ){
-        let nodoWorker = new Worker("/js/nodosWorker.js");
-        workersRed.push(nodoWorker);
-        nodoWorker.postMessage(i);
-        nodos[i] = {id: i, estado: "INICIADO", enUso: true};
-    }
-}
 
-function falloRed(){
-
-}
-
-function enviaBroadcast(){
-    workersRed.forEach(worker => {
-        worker.postMessage("AAAAA");
-    });
-}
-
+export {Red}

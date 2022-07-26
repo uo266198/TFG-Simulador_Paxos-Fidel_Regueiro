@@ -1,4 +1,4 @@
-export default class Timer{
+class Timer{
   constructor(velocidad, ppal) {
     this.velocidad = velocidad;
     this.pausado = true;
@@ -50,3 +50,5 @@ export default class Timer{
 
 
 }
+
+export {Timer}
