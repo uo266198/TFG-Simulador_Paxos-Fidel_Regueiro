@@ -41,7 +41,21 @@ circle:hover{
     margin-right: 10%;
 }
 .slider {
-    width: 100%; /* Full-width */
-    height: 20%; /* Specified height */
+    width: 100%; 
+    height: 20%; 
     
 }
+
+
+.circuloProgreso{
+    stroke-dasharray: 10 20;
+    visibility: hidden   ;
+    fill: none;
+    stroke: rgb(148, 94, 94);
+    fill-rule: evenodd;
+    
+}
+
+
+
+

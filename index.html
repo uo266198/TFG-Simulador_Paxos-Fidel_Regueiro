@@ -7,10 +7,11 @@
     <link rel="stylesheet" href="/css/bootstrap.css">
     <link rel="stylesheet" href="/css/style.css">
 
-
     <title>Simulador Paxos</title>
 
 </head>
+
+
 
 <body>
     <div class="container-fluid h-100">
@@ -22,22 +23,31 @@
 
         <div class="row " style="height: 92%;">
             <div class="flex-column d-flex bg-dark p-2 w-25">
+
                 <p class="border-bottom text-white text-center f-small">Opciones</p>
                 <p  id="probCaida" class="text-white text-center f-smaller mb-0">Probabilidad de fallo de un nodo: 0%</p>
+
                 <div class="slidecontainer">
-                    <input type="range" min="0" max="100" value="0" class="slider text-center" id="sliderCaida">
-                </div>
-                <p  id="probPerdida" class="text-white text-center f-smaller mb-0 mt-2">Probabilidad de pérdida de paquetes: 0%</p>
-                <div class="slidecontainer">
-                    <input type="range" min="0" max="100" value="0" class="slider text-center " id="sliderPerdida">
+                    <input type="range" min="0" max="50" value="0" class="slider text-center" id="sliderCaida">
                 </div>
 
-                <button type="button" class="btn btn-primary btn-sm mt-3 mx-lg-5 f-smaller" >Resetear
+                <p  id="probPerdida" class="text-white text-center f-smaller mb-0 mt-2">Probabilidad de pérdida de paquetes: 0%</p>
+                <div class="slidecontainer">
+                    <input type="range" min="0" max="25" value="0" class="slider text-center " id="sliderPerdida">
+                </div>
+
+                <button type="button" class="btn btn-primary btn-sm mt-3 mx-lg-5 f-smaller" id="btnReset" >Resetear
                     <svg xmlns="http://www.w3.org/2000/svg" width="60" height="30" fill="currentColor"
                         class="bi bi-trash-fill" viewBox="0 0 16 16">
                         <path
                             d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1H2.5zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5zM8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5zm3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0z" />
                     </svg>
+                </button>
+
+                <button type="button" class="btn btn-primary btn-sm mt-3 mx-lg-5 f-smaller" id="btnPartir">Partición de red
+                    <svg xmlns="http://www.w3.org/2000/svg" width="60" height="30" fill="currentColor" class="bi bi-scissors" viewBox="0 0 16 16">
+                        <path d="M3.5 3.5c-.614-.884-.074-1.962.858-2.5L8 7.226 11.642 1c.932.538 1.472 1.616.858 2.5L8.81 8.61l1.556 2.661a2.5 2.5 0 1 1-.794.637L8 9.73l-1.572 2.177a2.5 2.5 0 1 1-.794-.637L7.19 8.61 3.5 3.5zm2.5 10a1.5 1.5 0 1 0-3 0 1.5 1.5 0 0 0 3 0zm7 0a1.5 1.5 0 1 0-3 0 1.5 1.5 0 0 0 3 0z"/>
+                      </svg>
                 </button>
                 <p class="border-bottom text-white text-center f-small mt-3 mb-0">Tiempo Simulación</p>
                 <p id="reloj" class="text-white text-center f-medium mb-0">00:00</p>
@@ -49,16 +59,11 @@
                                 d="m11.596 8.697-6.363 3.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01 1.233-.696l6.363 3.692a.802.802 0 0 1 0 1.393z" />
                         </svg>
                     </button>
-                    <button type="button" id="btnSpeed" class="btn btn-primary btn-sm">
-                        <svg width="35" height="30" fill="currentColor" class="bi bi-skip-forward-fill"
-                            viewBox="0 0 20 15">
-                            <text id="btnSpeedText" x="2" y="13" fi>x1</text>
-                        </svg>
-                    </button>
+                    
                 </div>
 
-                <p class="border-bottom text-white text-center f-small mt-3 mb-0">Ronda Actual</p>
-                <p class="text-white text-center f-medium mt-0 mb-0">0</p>
+                <p class="border-bottom text-white text-center f-small mt-3 mb-0">Mayor Ronda Actual</p>
+                <p class="text-white text-center f-medium mt-0 mb-0" id="rondaGlobal">---</p>
 
                 <div class="text-white">Log:</div>
                 <div class="box">
@@ -102,8 +107,11 @@
                     <div class="input-group mb-3">
                         <input id="textPropuesta" type="text" class="form-control" placeholder="Propon un valor"
                             aria-describedby="basic-addon2">
+                        <input id="textRonda" type="number" class="form-control" placeholder="Num Ronda"
+                            aria-describedby="basic-addon2">
                         <div class="input-group-append">
                             <button id="btnProponer" class="btn btn-outline-secondary" type="button">Proponer</button>
+                           
                         </div>
                     </div>
                 </div>
@@ -116,6 +124,7 @@
 
 
     <!-- Modal 2-->
+    <!-- Para elegir el modo automático o manual y el número de nodos -->
     <div class="modal fade p-2" id="modalInicio" tabindex="-1" role="dialog" data-backdrop="static" data-keyboard="false"  aria-hidden="true"
         style="margin-left: 12.5%;">
         <div class="modal-dialog modal-dialog-centered" role="document">
@@ -128,7 +137,9 @@
                         <p class="dropdown-arrow dropdown-arrow-inverse">Elige el número de nodos para la simulación</p>
                         <button class="btn btn-primary status ml-5">3</button>
                         <button class="btn btn-primary dropdown-toggle" data-toggle="dropdown"> <span class="caret"></span> 
+
                         </button>
+                        
                         <ul class="dropdown-menu dropdown-inverse text-center">
                             <li><a href="#">3</a>
                             </li>
@@ -139,33 +150,208 @@
                             <li><a href="#">9</a>
                             </li>
                         </ul>
+
+                      
                     </div>
-                    <div class="form-check">
-                        <input class="form-check-input text-left"  type="checkbox" value="" id="checkBoxAuto">
-                        <label class="form-check-label" for="defaultCheck1">
-                             ¿Propuesta automática?
+                   <br></br>
+                    <div class="row flex-row " style="margin-left: 0%;">
+                        <p>Velocidad de la simulación</p>
+                        <button type="button" id="btnSpeed" class="btn btn-primary ml-auto mr-5">
+                            <svg width="35" height="20" fill="currentColor" class="bi bi-skip-forward-fill"
+                                viewBox="0 0 20 15">
+                                <text id="btnSpeedText" x="2" y="13" fi>x1</text>
+                            </svg>
+                        </button>
+                    </div>
+
+
+                    <div class="form-check" >
+                        <input class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault1">
+                        <label class="form-check-label" for="flexRadioDefault1">
+                          Modo manual
+                        </label>
+                      </div>
+                      
+                      <div class="form-check">
+                        <input class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault2" checked>
+                        <label class="form-check-label" for="flexRadioDefault2">
+                          Modo automático
                         </label>
                       </div>
                 </div>
+
+                <!-- Movido aquí desde la barra lateral-->
+               
 
                 <div class="modal-footer">
                     <button id="btnAcepta" class="btn  btn-primary col" type="button">
                         Aceptar
                     </button>
+                    <button id="btnManual" class="btn  btn-info col" type="button">
+                        Funcionamiento
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal 3 manual -->
+    <div class="modal fade p-2" id="modalManual" tabindex="-1" role="dialog" data-keyboard="false" data-backdrop="static" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable modal-xl"  style="overflow-y:auto;" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalTitle">Funcionamiento del simulador.</h5>
+                </div>
+                <div class="modal-body">
+                    <p style="margin-left: 1.5%;  margin-right: 1.5%; margin-top: 1.5%;" class="h6">MODO AUTOMÁTICO: </p>
+                    <p style="margin-left: 1.5%; margin-right: 1.5%;">
+                        A través de unos datos predefinidos de probabilidad de caída de los nodos y de pérdida de mensajes, el simulador decide qué nodo o nodos se proponen
+                        como líderes, proponiendo un valor automático de una lista de palabras. También pueden ocurrir particiones de red (x% de probabilidad cada x segundos).
+                    </p>
+
+                    <p style="margin-left: 1.5%;  margin-right: 1.5%;" class="h6">MODO MANUAL: </p>
+                    <p style="margin-left: 1.5%;  margin-right: 1.5%; " >
+                        El propio usuario podrá elegir la probabilidad de caída de un nodo, de pérdida de paquetes, cuándo ocurre una partición de red
+                        y deberá elegir manualmente qué nodo se propone como líder y podrá definir el valor a proponer.             
+                    </p>
+
+                    <p style="margin-left: 1.5%;  margin-right: 1.5%;" class="h6">MENSAJES: </p>
+                    <p style="margin-left: 1.5%;  margin-right: 1.5%;">
+                        <svg height="20" width="20" style="margin-left: 1.5%;  margin-right: 1.5%;">
+                            <circle cx="10" cy="10" r="10" fill="yellow" />
+                        </svg>
+                        Mensaje "PREPARA": enviado por el proponente a todos los nodos esperando que se comprometan con él.
+                    </p>
+                    <p style="margin-left: 1.5%;  margin-right: 1.5%;">
+                        <svg height="20" width="20" style="margin-left: 1.5%;  margin-right: 1.5%;">
+                            <circle cx="10" cy="10" r="10" fill="green" />
+                        </svg>
+                        Mensaje "PROMESA": enviado por los aceptadores a el proponente, confirmando su participación.
+
+                    </p>
+                    <p style="margin-left: 1.5%;  margin-right: 1.5%; vertical-align: text-bottom;">
+                        <svg height="20" width="20" style="margin-left: 1.5%;  margin-right: 1.5%;">
+                            <circle cx="10" cy="10" r="10" fill="blue" />
+                        </svg>
+                        
+                    Mensaje "ACEPTAR": contiene el valor propuesto por el líder. En primer lugar enviado por el proponente a todos los nodos, estos al recibirlo envían al resto de nodos  
+                    el mismo mensaje para poder llegar al consenso.
+                    </p>
+                        
+                    <p style="margin-left: 1.5%;  margin-right: 1.5%; margin-top: 1.5%;" class="h6">NODOS: </p>
+                    <p style="margin-left: 1.5%;  margin-right: 1.5%;">
+                        <svg height="20" width="20" style="margin-left: 1.5%;  margin-right: 1.5%;">
+                            <circle cx="10" cy="10" r="10" fill="blue" />
+                        </svg>
+                        Nodo Aceptador: a la espera de recibir una promeso de ser elegido como líder y proponente.
+                    </p>
+                    <p style="margin-left: 1.5%;  margin-right: 1.5%;">
+                        <svg height="20" width="20" style="margin-left: 1.5%;  margin-right: 1.5%;">
+                            <circle cx="10" cy="10" r="10" fill="yellow" />
+                        </svg>
+                        Nodo Líder/Proponente: es quíen comienza el envío de los mensajes.
+                    </p>
+                    <p style="margin-left: 1.5%;  margin-right: 1.5%; vertical-align: text-bottom;">
+                        <svg height="20" width="20" style="margin-left: 1.5%;  margin-right: 1.5%;">
+                            <circle cx="10" cy="10" r="10" fill="green" />
+                        </svg>
+                        Nodo Aprendiz/Consenso alcanzado: en esta siumlación todos los nodos hacen de aprendices, al llegar al consenso cambiarán a este estado
+                    </p>
+
+                    <p style="margin-left: 1.5%;  margin-right: 1.5%; vertical-align: text-bottom;">
+                        <svg height="20" width="20" style="margin-left: 1.5%;  margin-right: 1.5%;">
+                            <circle cx="10" cy="10" r="10" fill="gray" />
+                        </svg>
+                        Nodo pausado/caído: el nodo no está disponible actualmente, ya sea por una caída aleatoria o por que se ha pausado manualmente.
+                    </p>
+
+                    
+                    <p style="margin-left: 1.5%;  margin-right: 1.5%;" class="h6">SLIDER FALLO DE UN NODO: </p>
+                    <p style="margin-left: 1.5%;  margin-right: 1.5%;">
+                        A través de un contador interno, indica la probabilidad de que al completarse el tiempo, ese nodo se caiga.
+                    </p>
+
+                    <p style="margin-left: 1.5%;  margin-right: 1.5%;" class="h6">SLIDER PÉRDIDA DE MENSAJES: </p>
+                    <p style="margin-left: 1.5%;  margin-right: 1.5%;">
+                        Probabilidad de que un mensaje se pierda durante el envío de éste entre un nodo y otro.
+                    </p>
+                    <p style="margin-left: 1.5%;  margin-right: 1.5%;" class="h6">RESETEAR
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" lass="bi bi-trash-fill" viewBox="0 0 16 16">
+                            <path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1H2.5zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5zM8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5zm3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0z" />
+                        </svg>
+                        :
+                    </p>
+                    <p style="margin-left: 1.5%;  margin-right: 1.5%;">
+                        Recarga el simulador y vuelve a mostrar las opciones iniciales.
+                    </p>
+
+                    <p style="margin-left: 1.5%;  margin-right: 1.5%;" class="h6">PARTICIÓN DE RED
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-scissors" viewBox="0 0 16 16">
+                            <path d="M3.5 3.5c-.614-.884-.074-1.962.858-2.5L8 7.226 11.642 1c.932.538 1.472 1.616.858 2.5L8.81 8.61l1.556 2.661a2.5 2.5 0 1 1-.794.637L8 9.73l-1.572 2.177a2.5 2.5 0 1 1-.794-.637L7.19 8.61 3.5 3.5zm2.5 10a1.5 1.5 0 1 0-3 0 1.5 1.5 0 0 0 3 0zm7 0a1.5 1.5 0 1 0-3 0 1.5 1.5 0 0 0 3 0z"/>
+                          </svg>
+                        :
+                    </p>
+                    <p style="margin-left: 1.5%;  margin-right: 1.5%;">
+                        Divide en dos la red: de un lado una mayoría de nodos que pueden alcanzar consenso por sí mismo, y del otro, un número menor de nodos que no pueden continuar con el envío de mensajes.
+                        En qué lado de la red está es indicado con una "P" y un número.
+                    </p>
+
+                </div>
+              
+
+
+                <div class="modal-footer">
+                    <button id="btnVolver" class="btn btn-outline-dark btn-primary col" type="button">Volver</button>
                 </div>
             </div>
         </div>
     </div>
 
-</body>
+    <!-- Modal 3-->
+    <!-- Estadísticas finales en modo automatico-->
+    <div class="modal fade p-2" id="modalEstadisticas" tabindex="-1" role="dialog" data-backdrop="static" data-keyboard="false"  aria-hidden="true"
+        style="margin-left: 12.5%;">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalTitle">Estadísticas finales</h5>
+                </div>
+                <div class="modal-body">
+                    <p id="finTimepo" style="margin-left: 1.5%;  margin-right: 1.5%;">
+                    </p>
+                    <p id="finNumRondas" style="margin-left: 1.5%;  margin-right: 1.5%;">
+                    </p>
+                    <p  id="finNumCaidas" style="margin-left: 1.5%;  margin-right: 1.5%;">
+                    </p>
+                    <p id="finNumMsg" style="margin-left: 1.5%;  margin-right: 1.5%;">
+                    </p>
+                    <p id="finNumMsgPerdidos" style="margin-left: 1.5%;  margin-right: 1.5%;">
+                    </p>
+                    <p id="finPercentMsg" style="margin-left: 1.5%;  margin-right: 1.5%;">
+                    </p>
+                    <p  id="finNumLideres" style="margin-left: 1.5%;  margin-right: 1.5%;">
+                    </p>
+                </div>
 
+                <div class="modal-footer">
+                    <button id="btnVolverFin" class="btn  btn-primary col" type="button">
+                        Volver
+                    </button>
+                    <button id="btnResetFin" class="btn  btn-info col" type="button">
+                        Resetear
+                    </button>
+                </div>
+        </div>
+    </div>
+
+</body>
 
 <script src="/jquery/jquery-3.6.0.js"></script>
 <script src="/popper/popper.min.js"></script>
 <script src="/bootstrap/bootstrap.js"></script>
 <script src="/anime/anime.min.js"></script>
 <script type="module" src="/js/nodos.js"></script>
-<script type="module" src="/js/animations.js"></script>
 <script type="module" src="/js/mensaje.js"></script>
 <script type="module" src="/js/paxos.js"></script>
 <script type="module" src="/js/timer.js"></script>
