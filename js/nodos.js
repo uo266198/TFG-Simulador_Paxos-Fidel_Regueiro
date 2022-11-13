@@ -1,8 +1,9 @@
 import{Channel} from './channels.js'
 import {nodos, quorum, rondaGlobal, velocidad, simPaused, modoAuto, probFalloNodo, wait, setRonda, timersInternos, 
     addTimerInterno, maxTiempoRespuesta, minTiempoRespuesta, valoresProponer, consensoFinal, addNumCaidas, addNumLideres} from './paxos.js';
-import {desactivarNodo, setAceptador, setConsenso, activarNodo, escribeLog,setLider} from './ui.js';
+import {desactivarNodo, setPreparado, setConsenso, activarNodo, escribeLog, setLider, muestraTextoLider, setPropuesto} from './ui.js';
 import {TimerInterno} from './timerInterno.js';
+
 
 class Nodo {
     constructor(id, red) {
@@ -34,10 +35,11 @@ class Nodo {
 
         addTimerInterno(this.timerCaida);
         addTimerInterno(this.timerRecuperacion);
-        addTimerInterno(this.timerRecepcion);
+       // addTimerInterno(this.timerRecepcion);
     
         if(modoAuto){
             this.tiempoCaidaNodo();
+            this.animaTemporizadorRecepcion();
             this.tiempoRecepcion();
         }
     }
@@ -58,23 +60,25 @@ class Nodo {
             let orig;
             
             [msg, orig] = await this.recv_chn.shift();
-            this.timerRecepcion.resetTimerInterno()
             
-            //this.mensajeRecbido = true;
             if(!this.pausado ){
                 
-                //Tiempo que tarda el nodo en procesar el mensaje
-                await this.animaEspera();
+                if(modoAuto){
+                    if(this.waitAnim == undefined ||  this.waitAnim.completed ) this.tiempoRecepcion();
+                    else this.waitAnim.restart();
+                }
+
+                //await this.tiempoRecepcion();
                 escribeLog(0, this.id, orig, msg);
 
                 //MAQUINA DE ESTADOS
                 if(this.estado == "ACEPTADOR"){
                     if(msg[0] > this.ronda && this.consenso) !this.consenso;
                 
-                    if(msg[0] == "PREPARA"){
+                    if(msg[0] == "PREPARACION"){
                         //Ronda mayor que la actual, acepta  y envía el mensaje PROMESA
                         if(msg[1] > this.ronda){
-                            setAceptador(this.id);
+                            setPreparado(this.id);
                             this.ronda = msg[1];
 
                             await this.enviar(["PROMESA",this.ronda,null], [orig], this.id);      // else       
@@ -85,7 +89,7 @@ class Nodo {
                         }   
                     }
 
-                    else if(msg[0] == "ACEPTAR"){
+                    else if(msg[0] == "PROPUESTA"){
                         //Recibe el valor consensuado
                         //Si la ronda es igual a la mayor almacenada, y no hemos aceptado un valor con anterioridad
                         if(msg[1] == this.ronda && !this.aceptado){
@@ -98,13 +102,13 @@ class Nodo {
                             for(let i = 0; i<nodos.length ; i++){
                                 dest.push(nodos[i].id);
                             }
-
-                            await this.enviar(["ACEPTADO",this.ronda, this.valorPropuesto], dest, this.id)
+                            setPropuesto(this.id);
+                            await this.enviar(["ACEPTACION",this.ronda, this.valorPropuesto], dest, this.id)
 
                         }
                     }  
 
-                    else if(msg[0] == "ACEPTADO"){
+                    else if(msg[0] == "ACEPTACION"){
                         this.contadorAceptado++;
                         if(this.contadorAceptado>=quorum){
                             this.aceptado = false;
@@ -121,13 +125,13 @@ class Nodo {
                     // Si llega un mensaje con una ronda mayor, sea del tipo que sea, ya no podemos ser líderes
                     // Nos volvemos aceptadores de ese valor.
                    if(msg[1]>this.ronda){
-                        setAceptador(this.id);
+                        setPreparado(this.id);
                         this.ronda = msg[1];
 
-                        //Si el mensaje es PREPARA, podemos directamnete actuar como aceptadores y responder con la promesa
-                        if(msg[0] == "PREPARA") await this.enviar(["PROMESA",this.ronda ,null], [orig], this.id);                             
+                        //Si el mensaje es PREPARACION, podemos directamnete actuar como aceptadores y responder con la promesa
+                        if(msg[0] == "PREPARACION") await this.enviar(["PROMESA",this.ronda ,null], [orig], this.id);                             
                     
-                        else if(msg[0] == "ACEPTAR"){
+                        else if(msg[0] == "ACEPTA"){
                             this.valorPropuesto = msg[2];
                             this.aceptado = true;
                             var dest = [];
@@ -138,7 +142,7 @@ class Nodo {
                             this.contadorAceptado++;
 
                            
-                            await this.enviar(["ACEPTADO", this.ronda, this.valorPropuesto], dest, this.id)
+                            await this.enviar(["ACEPTACION", this.ronda, this.valorPropuesto], dest, this.id)
                         }
        
                     }
@@ -149,7 +153,7 @@ class Nodo {
                         if(msg[1] > this.ronda){
                             this.ronda = msg[1];
                             if(msg[2] != null) this.valorPropuesto = msg[2];
-                            setAceptador(this.id);
+                            setPreparado(this.id);
                             
                         }
                         else if(this.contadorAceptadores >= quorum && !this.aceptado){
@@ -169,21 +173,22 @@ class Nodo {
                             for(let i = 0; i<nodos.length ; i++){
                                 dest.push(nodos[i].id);
                             }
+                            setLider(this.id);
                             escribeLog(1, this.id)
-                            await this.enviar(["ACEPTAR",this.ronda ,this.valorPropuesto], dest, this.id);
+                            await this.enviar(["PROPUESTA",this.ronda ,this.valorPropuesto], dest, this.id);
                         }
                     }
 
-                    else if(msg[0] == "PREPARA" ){
+                    else if(msg[0] == "PREPARACION" ){
                         if(msg[1] > this.ronda){
                             if(msg[2] != null) this.valorPropuesto = msg[2];
-                            setAceptador(this.id);
+                            setPreparado(this.id);
                             this.ronda = msg[1];
                             await this.enviar(["PROMESA",this.ronda, null], [orig], this.id);         
                         }
                     }
 
-                    else if(msg[0] == "ACEPTADO"){
+                    else if(msg[0] == "ACEPTACION"){
                         this.contadorAceptado++;
 
                         if(this.contadorAceptado >= quorum){
@@ -207,31 +212,28 @@ class Nodo {
         this.recv_chn.push(["FIN_SIMULACION", -1]);
     }
 
-    async animaEspera(){
+    async animaTemporizadorRecepcion(tiempo){
         let circuloAnim = document.getElementById("progreso"+this.id);
         let circunferencia = circuloAnim.getAttribute("r")*2*Math.PI;
 
         circuloAnim.style.strokeDasharray = `${circunferencia} ${circunferencia}`;
         circuloAnim.style.visibility = "visible";
 
-        let velAnimEspera = velocidad*2
-
         this.waitAnim = anime({
             targets:  circuloAnim,
             strokeDashoffset: [circunferencia, 0],
             easing: 'linear', 
-            duration: velAnimEspera,
+            duration: tiempo,
             autoplay: false,
         });
-            
-        
+              
         this.waitAnim.play();
 
         await this.waitAnim.finished;
         circuloAnim.style.visibility = "hidden";
     }  
 
-    async liderPropone(propuesto, nuevaRonda){
+    async liderPropone(propuesto, nuevaRonda){ 
 
         addNumLideres();
         if(this.pausado) activarNodo(this.id);
@@ -258,13 +260,14 @@ class Nodo {
         }
         
 
-        let msg =["PREPARA",this.ronda,null]
+        let msg =["PREPARACION",this.ronda,null]
         
         $('#rondaGlobal').text(rondaGlobal);
         if(propuesto !=undefined ){
             this.valorPropuesto = propuesto;
         }
-        setLider(this.id);
+        muestraTextoLider(this.id);
+        this.estado = "LIDER";
 
         await this.red.enviar(msg, destino, this.id);
         
@@ -313,22 +316,25 @@ class Nodo {
     }
 
     //Controla si no se ha recibio un mensaje en un tiempo maximo, al expirar el temporizador se propone por si solo en el modo automático.
-    async tiempoRecepcion(reset){
+    async tiempoRecepcion(){
+        let temp;
+        if(velocidad == 1000) temp = 1;
+        else if (velocidad == 500) temp = 4.5;
+        else                  temp = 9;
 
         let vrand = (Math.floor(Math.random() *(maxTiempoRespuesta - minTiempoRespuesta + 1))+ minTiempoRespuesta);
-        //console.log(vrand*(velocidad/1000)/1000);
-        let resultado = await this.timerRecepcion.start(vrand*(velocidad/1000));
-        if(resultado == 0){
-            if(modoAuto && this.estado != "LIDER"){
-                escribeLog(8, this.id);
-                let valorTemp = valoresProponer[Math.floor(Math.random() * valoresProponer.length)];
-                this.valorPropuesto = valorTemp;
-                await this.liderPropone(valorTemp, -1) 
-            }
-            else if(this.estado == "LIDER"){
-                escribeLog(9, this.id);
-                await this.liderPropone(this.valorPropuesto, this.ronda+1);               
-            }
+      
+        await this.animaTemporizadorRecepcion(vrand/temp);
+        
+        if(modoAuto && this.estado != "LIDER"){
+            escribeLog(8, this.id);
+            let valorTemp = valoresProponer[Math.floor(Math.random() * valoresProponer.length)];
+            this.valorPropuesto = valorTemp;
+            await this.liderPropone(valorTemp, -1) 
+        }
+        else if(this.estado == "LIDER"){
+            escribeLog(9, this.id);
+            await this.liderPropone(this.valorPropuesto, this.ronda+1);               
         }
     }  
 }

@@ -1,6 +1,6 @@
 import {Timer} from './timer.js';
 import {escribeLog, creaPoligono, openModalInicio, reanudaSim, desactivaBotonesAuto, pausaSim, 
-        openModalEstadisticas, statsFinales, desactivaBotonesFin} from './ui.js';
+        openModalEstadisticas, statsFinales, desactivaBotonesFin, valoresGuardados} from './ui.js';
 import {Nodo} from './nodos.js';
 import {Red} from './red.js';
 
@@ -41,6 +41,7 @@ export var numCaidas = 0;
 
 
 //Inicio
+valoresGuardados();
 openModalInicio();
 
 ////////////////////////////////
@@ -48,6 +49,7 @@ openModalInicio();
 ///////////////////////////////
 
 export function inicio(auto){
+
     $("#modalInicio").modal('hide');
     modoAuto = auto;
     quorum = Math.floor(numNodos/2)+1;
@@ -63,7 +65,10 @@ export function inicio(auto){
     }   
     else escribeLog(-1,null,null,"Esperando una propuesta manual.");
 
-    timerSim.startTime();
+    
+    localStorage.setItem("numNodos", numNodos);
+    localStorage.setItem("velocidad", velocidad);
+    localStorage.setItem("modoAuto", auto);
 }
 
 async function iniciaRed(){

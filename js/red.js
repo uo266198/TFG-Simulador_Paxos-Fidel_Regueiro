@@ -13,12 +13,6 @@ class Red {
         this.input = new Channel();
         this.nodos_registrados = [];
         this.animacionesRed = [];
-       
-        if(modoAuto) {
-           this.timerParticion = new TimerInterno();
-           addTimerInterno(this.timerParticion);
-           this.probParticion();
-        }
         
     }
 
@@ -90,6 +84,8 @@ class Red {
         return false
     }
 
+
+    //No se usa, las particiones tiene más sentido que NO sean aleatorias, cambian demasiado el flujo de la simulación
     async probParticion(){
         //Tiempo aleatorio
         let vrand =  velocidad* (Math.floor(Math.random() * 30)+20);

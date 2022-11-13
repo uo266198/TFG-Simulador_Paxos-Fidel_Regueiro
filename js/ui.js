@@ -1,14 +1,12 @@
 import {timerSim,  inicio, setNumNodos, nodos, red1, red2, hayParticion, setParticion, simPaused, setSimPaused, modoAuto, setVelocidad, probFalloNodo, probFalloRed, setProbFalloNodo,
-        setProbFalloRed, timersInternos, rondaGlobal, numCaidas, numLideres, mensajesPerdidos, mensajesTotales } from "./paxos.js"
+        setProbFalloRed, rondaGlobal, numCaidas, numLideres, mensajesPerdidos, mensajesTotales, numNodos, velocidad } from "./paxos.js"
 
 var svgNS = "http://www.w3.org/2000/svg"; 
  
 var nodoDist = 7;
 var radio = 2;
-var colorNodos = "rgb(57, 109, 242)";
+var colorNodos = "gray";
 var actual;
-
-var numNodos;
 
 //?
 var timerCaidaEnUso = false;
@@ -106,14 +104,13 @@ function openModalInfo(e){
 }
 
 // Crea el polígono regular que forman los distintos nodos según el número de estos y por lo tanto la posición de cada nodo.
-// También crea el círculo exterior que representa el tiempo que cada nodo tarda en procesar los mensajes.
-function creaPoligono(nNodos){
-    numNodos = nNodos;
+// También crea el círculo exterior que representa el temporizador interno de recepción de mensajes.
+function creaPoligono(){
     for (let i = 0; i <numNodos; i++){
         let posX = Math.cos(i * 2 * Math.PI / numNodos + Math.PI/2 - Math.PI/numNodos)*nodoDist;
         let posY = Math.sin(i * 2 * Math.PI / numNodos + Math.PI/2 - Math.PI/numNodos)*nodoDist;
 
-        //Circulo de progreso
+        //Circulo de progreso 
         let circuloProgreso =  document.createElementNS(svgNS,"circle");
         circuloProgreso.setAttribute("id","progreso"+i);
         circuloProgreso.setAttribute("class","circuloProgreso");
@@ -178,22 +175,21 @@ function creaCirculoAnim(og, dest, tipo, ronda, valor){
 
 
     //El color cambia por el tipo de mensaje
-    if(tipo == "PREPARA" ){
-        circuloAnim.setAttribute("fill","yellow");
+    if(tipo == "PREPARACION" ){
+        circuloAnim.setAttribute("fill","dodgerBlue");
     }
-    else if (tipo == "ACEPTAR"){
-        circuloAnim.setAttribute("fill","blue");
+    else if(tipo == "PROMESA" ){
+        circuloAnim.setAttribute("fill","LemonChiffon");
+    }
+    else if (tipo == "PROPUESTA"){
+        circuloAnim.setAttribute("fill","greenYellow");
     }
     else if(tipo == "PERDIDO"){
-        circuloAnim.setAttribute("fill","red");
+        circuloAnim.setAttribute("fill","indianRed");
     }
-    else if(tipo == "ACEPTADO"){
-        circuloAnim.setAttribute("fill","GoldenRod");
+    else if(tipo == "ACEPTACION"){
+        circuloAnim.setAttribute("fill","LawnGreen");
     }
-    else {
-        circuloAnim.setAttribute("fill","green");
-    }
-    
 
     document.getElementById("svgFrame").appendChild(circuloAnim);
         
@@ -208,7 +204,7 @@ function creaCirculoAnim(og, dest, tipo, ronda, valor){
 // Dibuja los nombres de cada nodo
 function dibujaNombres(id, posX, posY){
         var textoSVG = document.createElementNS(svgNS,"text"); 
-        textoSVG.setAttributeNS(null,"id","textoSVG");
+        textoSVG.setAttributeNS(null,"id","textoSVG"+id);
         textoSVG.setAttributeNS(null,"x", posX);
         textoSVG.setAttributeNS(null,"y", posY - 0.9);
         textoSVG.setAttributeNS(null,"font-size",0.5);
@@ -278,6 +274,58 @@ function eliminaParticion(){
     }
 }
 
+//Modifica el texto del nodo lider para indicar su estatus
+function muestraTextoLider(id){
+
+    let nodo = document.getElementById("nodo"+id);
+    let posx = nodo.getAttribute("cx");
+    let posy = nodo.getAttribute("cy");
+
+    let liderTextoSVG = document.createElementNS(svgNS,"text"); 
+    liderTextoSVG.setAttribute("x", posx);
+    liderTextoSVG.setAttribute("y", parseFloat(posy) - 0.3);
+    liderTextoSVG.setAttribute("id","newTextoSVG"+id);
+    liderTextoSVG.setAttribute("font-size",0.4);
+    liderTextoSVG.setAttribute("text-anchor", "middle");
+    liderTextoSVG.setAttribute("pointer-events","none");
+
+    let texto = document.createTextNode("LIDER");
+    let frame = document.getElementById("svgFrame");
+    liderTextoSVG.appendChild(texto);
+    frame.appendChild(liderTextoSVG); 
+}
+
+
+//Quita el texto  del lider
+function quitaTextoLider(id){
+    getElementById("id","newTextoSVG"+id).remove;
+}
+
+//Pone por defecto los últimos valores seleccionados
+function valoresGuardados(){
+    $("#dropDownValue").text(localStorage.getItem("numNodos"));
+
+    let velocidad = localStorage.getItem("velocidad");
+    if(velocidad == 500){
+        $("#btnSpeedText").text("x2");
+        setVelocidad(500);
+        timerSim.velocidad = 500;
+    }
+    else if(velocidad == 250){
+        $("#btnSpeedText").text("x3");
+        setVelocidad(250);
+        timerSim.velocidad = 250;
+    }
+
+    if(localStorage.getItem("modoAuto") == "false"){
+        document.getElementById("flexRadioDefault1").setAttribute("checked","true");
+    }
+    else{
+        document.getElementById("flexRadioDefault2").setAttribute("checked","true");       
+    }
+}
+
+
 //muestra la información del nodo
 function openModalInicio(){
     $("#modalInicio").modal('show');
@@ -299,10 +347,6 @@ function reanudaSim(){
             }  
         } 
     }
-
-    //for(let i=0; i<timersInternos.length; i++){  
-        //if(timersInternos[i].pausado == true) timersInternos[i].resumeTimerInterno();    
-    //}
 
     setSimPaused(false);
     timerSim.reanudaTimer();
@@ -335,7 +379,7 @@ function pausaSim(){
 
 function desactivarNodo(id){
     //Cambia el color
-    $("#nodo"+id).css("fill","grey");
+    $("#nodo"+id).css("fill","red");
     nodos[id].pausado = true;
     $("#modalPausado").text("Pausado/Caído:       "+ nodos[id].pausado);
     escribeLog(4, id)
@@ -344,22 +388,30 @@ function desactivarNodo(id){
 function activarNodo(id){
     //Cambia el color
     if(nodos[id].estado == "ACEPTADOR" && nodos[id].ronda != -1) $("#nodo"+id).css("fill","cyan");
-    else if(nodos[id].estado == "LIDER") $("#nodo"+id).css("fill","yellow");
+    else if(nodos[id].estado == "LIDER") $("#nodo"+id).css("fill","gold");
     else $("#nodo"+id).css("fill",colorNodos);
     
     nodos[id].pausado = false;
     escribeLog(5, id)
 } 
- 
-function setAceptador(id){ 
+
+
+function setPreparado(id){ 
+    console.log(id);
     //Cambia el color 
-    $("#nodo"+id).css("fill","cyan");
+    $("#nodo"+id).css("fill","steelBlue");
+    nodos[id].estado = "ACEPTADOR";
+}
+
+function setPropuesto(id){ 
+    //Cambia el color 
+    $("#nodo"+id).css("fill","Yellow");
     nodos[id].estado = "ACEPTADOR";
 }
 
 function setConsenso(id){
     //Cambia el color
-    $("#nodo"+id).css("fill","green");
+    $("#nodo"+id).css("fill","darkGreen");
     nodos[id].consenso = true;
     nodos[id].aceptado = false;
     nodos[id].contadorAceptadores = 1;
@@ -378,7 +430,7 @@ function statsFinales(){
 }
 
 function setLider(id){
-    $("#nodo"+id).css("fill", "yellow");
+    $("#nodo"+id).css("fill", "gold");
     if(!modoAuto) escribeLog(7,id);
     nodos[id].estado = "LIDER";
 }
@@ -393,7 +445,7 @@ function desactivaBotonesAuto(){
     document.getElementById("sliderPerdida").disabled = true;
     document.getElementById("sliderCaida").disabled = true;
 
-    $("#btnPartir").attr('disabled', 'disabled');
+    //$("#btnPartir").attr('disabled', 'disabled');
     $("#btnProponer").attr('disabled', 'disabled');
 }
 
@@ -411,9 +463,9 @@ function desactivaBotonesFin(){
 function openModalEstadisticas(){
     $("#modalEstadisticas").modal('show');
 }
-///////////////////////////////
-////////// MANEJADORES ////////
-//////////////////////////////
+/////////////////////////////////
+////////// MANEJADORES //////////
+/////////////////////////////////
 
 $("#btnSpeed").click(function(){
     if(timerSim.velocidad == 1000) {
@@ -462,6 +514,7 @@ $("#btnProponer").click(function(){
     var propuesta = $("#textPropuesta").val();
     var nuevaRonda = $("#textRonda").val();
     if(propuesta !="" && nuevaRonda !=""){
+        muestraTextoLider(actual);
         escribeLog("Nodo "+actual+" se prepara para proponer el valor:  \""+ propuesta+ " "+nuevaRonda+"\"");  
         nodos[actual].liderPropone(propuesta,nuevaRonda);
     }  
@@ -469,6 +522,8 @@ $("#btnProponer").click(function(){
 
 $("#btnAcepta").click(function(){  
     let auto = $("#flexRadioDefault2").is(':checked');
+    setNumNodos($('.status').text());
+    timerSim.startTime();
     inicio(auto);
 });
 
@@ -492,7 +547,6 @@ $("#btnVolver").click(function(){
 
 $('.dropdown-inverse li > a').click(function(e){
     $('.status').text(this.innerHTML);
-    setNumNodos($('.status').text());
 });
 
 $(document).on('input', '#sliderCaida', function() {
@@ -533,6 +587,6 @@ $('#btnSuspender').click(function(e){
    
 });
 
-export{escribeLog, openModalInfo, openModalInicio, pausaSim, reanudaSim, creaPoligono, setLider, setAceptador, setConsenso, 
+export{escribeLog, openModalInfo, openModalInicio, pausaSim, reanudaSim, creaPoligono, setLider, setPreparado, setConsenso, 
     creaCirculoAnim, desactivarNodo, activarNodo, desactivaBotonesAuto, generaParticion, openModalEstadisticas, statsFinales,
-    desactivaBotonesFin}
+    desactivaBotonesFin, muestraTextoLider, valoresGuardados, setPropuesto}
