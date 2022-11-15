@@ -220,6 +220,7 @@ function dibujaNombres(id, posX, posY){
 //Dibuja el texto en cada nodo que lo sitúa en una red distinta, la primera mitad, la mayor la 0 y los demás la particion 1.
 function generaParticion(){
 
+    $("#btnPartir").children('span').text("Quitar partición")
     let nodosParticion = Math.floor(numNodos/2)+1;
     setParticion(true);
 
@@ -231,12 +232,12 @@ function generaParticion(){
         let circ = document.getElementById("nodo"+i);
 
         let textoPart = document.createElementNS(svgNS,"text"); 
-        textoPart.setAttributeNS(null,"id","textoParticion"+i);
-        textoPart.setAttributeNS(null,"x", circ.getAttribute("cx"));
-        textoPart.setAttributeNS(null,"y", parseFloat(circ.getAttribute("cy")) + 0.9);
-        textoPart.setAttributeNS(null,"font-size",1.2);
-        textoPart.setAttributeNS(null,"text-anchor", "middle");
-        textoPart.setAttributeNS(null,"pointer-events","none");
+        textoPart.setAttribute("id","textoParticion"+i);
+        textoPart.setAttribute("x", circ.getAttribute("cx"));
+        textoPart.setAttribute("y", parseFloat(circ.getAttribute("cy")) + 0.9);
+        textoPart.setAttribute("font-size",1.2);
+        textoPart.setAttribute("text-anchor", "middle");
+        textoPart.setAttribute("pointer-events","none");
 
         let part;
 
@@ -250,10 +251,25 @@ function generaParticion(){
             part = 1;
         }
 
+        //
+      
+        //
         let texto = document.createTextNode("P"+part);
         textoPart.appendChild(texto);
         document.getElementById("svgFrame").appendChild(textoPart); 
     }
+
+
+    
+
+
+    let tijeraSVG = document.createElementNS(svgNS,"path");
+    tijeraSVG.setAttribute("id","svgPart");
+    tijeraSVG.setAttribute("d","M3.5 3.5c-.614-.884-.074-1.962.858-2.5L8 7.226 11.642 1c.932.538 1.472 1.616.858 2.5L8.81 8.61l1.556 2.661a2.5 2.5 0 1 1-.794.637L8 9.73l-1.572 2.177a2.5 2.5 0 1 1-.794-.637L7.19 8.61 3.5 3.5zm2.5 10a1.5 1.5 0 1 0-3 0 1.5 1.5 0 0 0 3 0zm7 0a1.5 1.5 0 1 0-3 0 1.5 1.5 0 0 0 3 0z");
+    tijeraSVG.setAttribute("transform", "translate(12,7) scale(0.1)");
+    document.getElementById("svgFrame").appendChild(tijeraSVG); 
+
+    $("#btnPartir").children('svg').children("path").attr("d","m2.68 7.676 6.49-6.504a4 4 0 0 1 5.66 5.653l-1.477 1.529-5.006 5.006-1.523 1.472a4 4 0 0 1-5.653-5.66l.001-.002 1.505-1.492.001-.002Zm5.71-2.858a.5.5 0 1 0-.708.707.5.5 0 0 0 .707-.707ZM6.974 6.939a.5.5 0 1 0-.707-.707.5.5 0 0 0 .707.707ZM5.56 8.354a.5.5 0 1 0-.707-.708.5.5 0 0 0 .707.708Zm2.828 2.828a.5.5 0 1 0-.707-.707.5.5 0 0 0 .707.707Zm1.414-2.121a.5.5 0 1 0-.707.707.5.5 0 0 0 .707-.707Zm1.414-.707a.5.5 0 1 0-.706-.708.5.5 0 0 0 .707.708Zm-4.242.707a.5.5 0 1 0-.707.707.5.5 0 0 0 .707-.707Zm1.414-.707a.5.5 0 1 0-.707-.708.5.5 0 0 0 .707.708Zm1.414-2.122a.5.5 0 1 0-.707.707.5.5 0 0 0 .707-.707ZM8.646 3.354l4 4 .708-.708-4-4-.708.708Zm-1.292 9.292-4-4-.708.708 4 4 .708-.708Z")
 
     /*console.log("red1")
     console.log(red1.nodos_registrados)
@@ -266,6 +282,12 @@ function eliminaParticion(){
     setParticion(false);
     red1.borrar_nodos();
     red2.borrar_nodos();
+
+    console.log(document.getElementById("svgPart"));
+    document.getElementById("svgPart").remove();
+    $("#btnPartir").children('span').text("Crear Partición");
+    $("#btnPartir").children('svg').children("path").attr("d","M3.5 3.5c-.614-.884-.074-1.962.858-2.5L8 7.226 11.642 1c.932.538 1.472 1.616.858 2.5L8.81 8.61l1.556 2.661a2.5 2.5 0 1 1-.794.637L8 9.73l-1.572 2.177a2.5 2.5 0 1 1-.794-.637L7.19 8.61 3.5 3.5zm2.5 10a1.5 1.5 0 1 0-3 0 1.5 1.5 0 0 0 3 0zm7 0a1.5 1.5 0 1 0-3 0 1.5 1.5 0 0 0 3 0z")
+
 
     for(let i=0 ; i<nodos.length; i++){
         red1.registrar_nodo(nodos[i]);
@@ -520,6 +542,11 @@ $("#btnProponer").click(function(){
     }  
 });
 
+$("#btnInfo").click(function(){
+    pausaSim(true);
+    $("#modalManual").modal('show');
+});
+
 $("#btnAcepta").click(function(){  
     let auto = $("#flexRadioDefault2").is(':checked');
     setNumNodos($('.status').text());
@@ -541,8 +568,11 @@ $("#btnManual").click(function(){
 });
 
 $("#btnVolver").click(function(){  
-    $("#modalInicio").modal('show');
     $("#modalManual").modal('hide');
+    if(nodos[0] == undefined){
+        $("#modalInicio").modal('show');
+        
+    } 
 });
 
 $('.dropdown-inverse li > a').click(function(e){
