@@ -67,8 +67,8 @@ function openModalInfo(e){
     
     actual = this.dataset.key;
 
-    $("#modalTitle").text("Información del nodo " + this.dataset.key);
-    $("#modalEstado").text("Estado actual:       "+ nodos[actual].estado);
+    $("#modalTitle").text("Propón un valor desde el nodo " + this.dataset.key);
+    /*$("#modalEstado").text("Estado actual:       "+ nodos[actual].estado);
     $("#modalRonda").text("Ronda más alta recibida:       "+ nodos[actual].ronda);
 
     if (nodos[actual].estado == "LIDER"){
@@ -98,7 +98,7 @@ function openModalInfo(e){
 
     if(modoAuto){
         $('#btnSuspender').prop("disabled", true)
-    }
+    }*/
 
     $("#modalInfo").modal('show');
 }
@@ -127,13 +127,23 @@ function creaPoligono(){
         circulo.setAttribute("cy",posY);
         circulo.setAttribute("r",radio);
         circulo.setAttribute("fill",colorNodos);
+
+        // Tooltip
+        circulo.setAttribute("data-toggle","tooltip");
+        circulo.setAttribute("data-placement","top");
+        circulo.setAttribute("data-html","true");
+        circulo.setAttribute("title","Nodo "+i);
+
+        $(function () {
+            $('[data-toggle="tooltip"]').tooltip()
+        });
+        //circulo.setAttribute("title","<p> Mensaje: "+tipo+"</p><p> Origen: "+og+"</p><p> Destino: "+dest+"</p><p> Ronda: "+ronda+"</p><p> Valor: "+valor+"</p>");
     
         //Añadimos un valor que distingue a cada nodo
         circulo.setAttribute("data-key", i);
-        circulo.addEventListener("click", openModalInfo);
+        if(!modoAuto) circulo.addEventListener("click", openModalInfo);
+        circulo.addEventListener("mouseover", tooltipNodos);
         document.getElementById("svgFrame").appendChild(circulo);
-
-
 
         dibujaNombres(i, posX, posY); 
     }   
@@ -259,10 +269,6 @@ function generaParticion(){
         document.getElementById("svgFrame").appendChild(textoPart); 
     }
 
-
-    
-
-
     let tijeraSVG = document.createElementNS(svgNS,"path");
     tijeraSVG.setAttribute("id","svgPart");
     tijeraSVG.setAttribute("d","M3.5 3.5c-.614-.884-.074-1.962.858-2.5L8 7.226 11.642 1c.932.538 1.472 1.616.858 2.5L8.81 8.61l1.556 2.661a2.5 2.5 0 1 1-.794.637L8 9.73l-1.572 2.177a2.5 2.5 0 1 1-.794-.637L7.19 8.61 3.5 3.5zm2.5 10a1.5 1.5 0 1 0-3 0 1.5 1.5 0 0 0 3 0zm7 0a1.5 1.5 0 1 0-3 0 1.5 1.5 0 0 0 3 0z");
@@ -294,6 +300,19 @@ function eliminaParticion(){
         let txt =  document.getElementById("textoParticion"+i);
         txt.remove();
     }
+}
+
+
+function tooltipNodos(e){
+    actual = this.dataset.key;
+
+    let textRonda = nodos[actual].ronda;
+    let textValor = nodos[actual].valorPropuesto;
+
+    if(nodos[actual].ronda < 0) textRonda = "ninguna ronda recibida"
+    if(textValor == undefined) textValor = "ninguno"
+    let textoMouseOver = "<p>Nodo: "+actual+"</p><p>Estado actual: "+nodos[actual].estado+"</p><p>Mayor ronda recibida: "+textRonda+"</p><p> Valor aceptado: "+textValor+"</p>"
+    document.getElementById("nodo"+actual).setAttribute("data-original-title", textoMouseOver);
 }
 
 //Modifica el texto del nodo lider para indicar su estatus
