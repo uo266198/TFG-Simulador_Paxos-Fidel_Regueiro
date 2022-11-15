@@ -1,19 +1,15 @@
 import {Channel}  from "./channels.js";
 import {escribeLog } from "./ui.js";
 import {creaCirculoAnim, generaParticion} from "./ui.js";
-import {velocidad, hayParticion, simPaused, probFalloRed, wait, addMensajesPerdidos, addMensajesTotales, addTimerInterno, modoAuto} from "./paxos.js"
+import {velocidad, hayParticion, simPaused, probFalloRed, wait, addMensajesPerdidos, addMensajesTotales, addTimerInterno, modoAuto, mensajesEnEnvio} from "./paxos.js"
 import {TimerInterno} from "./timerInterno.js"
 
-function sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
 
 class Red {
     constructor() {
         this.input = new Channel();
         this.nodos_registrados = [];
         this.animacionesRed = [];
-        
     }
 
     async bucle_simulacion() {
@@ -103,8 +99,6 @@ class Red {
         }
     }  
     
-    
-
     async animaEnvio(og, dest, msg){
         let datos = creaCirculoAnim(og, dest, msg[0], msg[1], msg[2]);
         let posxOg = datos[0][0];
@@ -130,13 +124,18 @@ class Red {
             anim.play();
         }
 
+        //Lo añade a la estructura que permite conseguir los datos al clicar en un mensaje
+        mensajesEnEnvio.splice(datos[3],0,[og,dest,msg[0],msg[1],msg[2]]);
+
         await anim.finished;
+
+        //Lo borra de la estructura
+        mensajesEnEnvio.splice(datos[3],1);
         circuloAnim.remove();
 
         //Envío de los datos al otro nodo
         //Aquí ya que es necesario esperar a que finalice la animación de envio
         //También hay que comprobar si el destino pertenece a la misma partición que el origen, ya que esto puede cambiar durante la propia animación.
-
 
         var rand = (Math.floor(Math.random() * 101));
 

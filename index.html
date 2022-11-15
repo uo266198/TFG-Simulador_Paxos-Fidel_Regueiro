@@ -294,8 +294,6 @@
                     </p>
 
                 </div>
-              
-
 
                 <div class="modal-footer">
                     <button id="btnVolver" class="btn btn-outline-dark btn-primary col" type="button">Volver</button>
@@ -304,7 +302,7 @@
         </div>
     </div>
 
-    <!-- Modal 3-->
+    <!-- Modal 4-->
     <!-- Estadísticas finales en modo automatico-->
     <div class="modal fade p-2" id="modalEstadisticas" tabindex="-1" role="dialog" data-backdrop="static" data-keyboard="false"  aria-hidden="true"
         style="margin-left: 12.5%;">
@@ -340,6 +338,35 @@
                 </div>
         </div>
     </div>
+
+
+    <!-- Modal 5-->
+    <!-- Parar mensajes en trnánsito-->
+    <div class="modal fade p-2" id="modalMensajes" tabindex="-1" role="dialog" data-keyboard="false" data-backdrop="static" aria-hidden="true"
+    style="margin-left: 12.5%;">
+    <div class="modal-dialog modal-dialog-centered "  role="document">
+        <div class="modal-content">
+            
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalTitle">Perder mensaje</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+
+            </div>
+            <div class="modal-body">
+                <p>Pudes hacer que este mensaje no llegue hasta su destino</p>
+                <p id="pOrigen">Origen</p>
+                <p id="pDestino">Destino</p>
+                <p id="pMensaje">Mensaje</p>
+                <p id="pValor">Valor</p>
+                <button id="btnResetFin" class="btn  btn-info col" type="button">
+                    Perder
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 
 </body>
 

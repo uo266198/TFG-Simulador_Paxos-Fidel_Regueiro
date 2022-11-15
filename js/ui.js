@@ -1,5 +1,5 @@
 import {timerSim,  inicio, setNumNodos, nodos, red1, red2, hayParticion, setParticion, simPaused, setSimPaused, modoAuto, setVelocidad, probFalloNodo, probFalloRed, setProbFalloNodo,
-        setProbFalloRed, rondaGlobal, numCaidas, numLideres, mensajesPerdidos, mensajesTotales, numNodos, velocidad } from "./paxos.js"
+        setProbFalloRed, rondaGlobal, numCaidas, numLideres, mensajesPerdidos, mensajesTotales, numNodos, velocidad, mensajesEnEnvio } from "./paxos.js"
 
 var svgNS = "http://www.w3.org/2000/svg"; 
  
@@ -7,6 +7,7 @@ var nodoDist = 7;
 var radio = 2;
 var colorNodos = "gray";
 var actual;
+var contIdentificaNodosAnim = 0;
 
 //?
 var timerCaidaEnUso = false;
@@ -137,7 +138,6 @@ function creaPoligono(){
         $(function () {
             $('[data-toggle="tooltip"]').tooltip()
         });
-        //circulo.setAttribute("title","<p> Mensaje: "+tipo+"</p><p> Origen: "+og+"</p><p> Destino: "+dest+"</p><p> Ronda: "+ronda+"</p><p> Valor: "+valor+"</p>");
     
         //Añadimos un valor que distingue a cada nodo
         circulo.setAttribute("data-key", i);
@@ -152,7 +152,6 @@ function creaPoligono(){
 //Crea el circulo que representa el envío de datos
 function creaCirculoAnim(og, dest, tipo, ronda, valor){
     var datos = [];
-   
     //Nodos de origen y destino
     let nodoOg = document.getElementById("nodo"+og); 
     let nodoDest = document.getElementById("nodo"+dest); 
@@ -166,16 +165,19 @@ function creaCirculoAnim(og, dest, tipo, ronda, valor){
     
     //Circulos que usaremos en las animaciones de datos.
     let circuloAnim = document.createElementNS(svgNS,"circle");
-    circuloAnim.setAttribute("id","nodoAnim"+og);
+    circuloAnim.setAttribute("id","nodoAnim"+contIdentificaNodosAnim);
     circuloAnim.setAttribute("cx",posxOg);
     circuloAnim.setAttribute("cy",posyOg);
     circuloAnim.setAttribute("r",radio/4);
+
+    circuloAnim.setAttribute("data-key", contIdentificaNodosAnim);
 
 
     //Tooltip
     circuloAnim.setAttribute("data-toggle","tooltip")
     circuloAnim.setAttribute("data-placement","left")
     circuloAnim.setAttribute("data-html","true")
+    circuloAnim.addEventListener("click", openModalMensajes);
     circuloAnim.setAttribute("title","<p> Mensaje: "+tipo+"</p><p> Origen: "+og+"</p><p> Destino: "+dest+"</p><p> Ronda: "+ronda+"</p><p> Valor: "+valor+"</p>");
     
 
@@ -206,7 +208,10 @@ function creaCirculoAnim(og, dest, tipo, ronda, valor){
     datos[0] = [posxOg, posyOg];
     datos[1] = [posxDest, posyDest];
     datos[2] = circuloAnim;
+    datos[3] = contIdentificaNodosAnim;
     
+    contIdentificaNodosAnim++;
+
     return datos;
 }
 
@@ -371,6 +376,26 @@ function valoresGuardados(){
 function openModalInicio(){
     $("#modalInicio").modal('show');
 }
+
+function openModalMensajes(e){
+
+    pausaSim();
+    let id = this.dataset.key;
+    //Esto no debería ser necesario, pero lo es PARA ESTE MODAL EN CONCRETO y no estoy seguro de por qué;
+    $("#modalMensajes").appendTo("body")
+    $("#modalMensajes").modal('show');
+
+    let og = mensajesEnEnvio[id][0];
+    let dst = mensajesEnEnvio[id][1];
+    let msg = mensajesEnEnvio[id][2];
+    let valor =mensajesEnEnvio[id][4];
+
+    $("#pOrigen").text("Origen: "+og);
+    $("#pDestino").text("Destino: "+dst);
+    $("#pMensaje").text("Mensaje: "+msg);
+    $("#pValor").text("Valor (puede ser null): "+valor);
+}
+
 
 function reanudaSim(){
     $("#btnPlay").attr('class', "btn btn-primary btn-sm ");

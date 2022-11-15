@@ -40,6 +40,10 @@ export var numLideres = 0;
 export var numCaidas = 0;
 
 
+//Guarda la info de los mensajes en envio.
+export var mensajesEnEnvio = [];
+
+
 //Inicio
 valoresGuardados();
 openModalInicio();
