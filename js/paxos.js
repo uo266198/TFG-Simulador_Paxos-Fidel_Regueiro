@@ -41,7 +41,7 @@ export var numCaidas = 0;
 
 
 //Guarda la info de los mensajes en envio.
-export var mensajesEnEnvio = [];
+export var mensajesEnEnvio = new Map();
 
 
 //Inicio
@@ -146,6 +146,7 @@ export async function  wait(ms) {
         setTimeout(resolve, ms);
     });
 }
+
 
 export async function consensoFinal(){
     

@@ -28,7 +28,6 @@ class Red {
 
                 //El nodo destino puede no pertenecer a esta red
                 if(this.nodos_registrados[j].id == dst[i] && this.nodos_registrados[dst[i]].id != src){
-
                     //Tirada de fallo de red
                     var rand = (Math.floor(Math.random() * 101));
                     if(rand <= probFalloRed && probFalloRed != 0) {
@@ -124,31 +123,28 @@ class Red {
             anim.play();
         }
 
-        //Lo añade a la estructura que permite conseguir los datos al clicar en un mensaje
-        mensajesEnEnvio.splice(datos[3],0,[og,dest,msg[0],msg[1],msg[2]]);
-
         await anim.finished;
 
-        //Lo borra de la estructura
-        mensajesEnEnvio.splice(datos[3],1);
+        //Lo borra de la estructura //////////////////////////////
+        //mensajesEnEnvio.splice(datos[3],1);
         circuloAnim.remove();
 
         //Envío de los datos al otro nodo
         //Aquí ya que es necesario esperar a que finalice la animación de envio
         //También hay que comprobar si el destino pertenece a la misma partición que el origen, ya que esto puede cambiar durante la propia animación.
-
         var rand = (Math.floor(Math.random() * 101));
-
+       
         if(hayParticion){
-            if(this.destino_posible(og, dest)){
-                 this.nodos_registrados[dest].recv_chn.push([msg, og]);  
+            if(this.destino_posible(og, dest) && msg[0] != "PERDIDO" &&  !mensajesEnEnvio.get(datos[3].toString()).perdido){
+                this.nodos_registrados[dest].recv_chn.push([msg, og]);  
             }
             else console.log("Msg origen: " +  og + " destino: " + dest + " perdido por la partición");
         }
-        else if(msg[0] == "PERDIDO") {
+        
+        else if(msg[0] == "PERDIDO" ||  mensajesEnEnvio.get(datos[3].toString()).perdido) {
             addMensajesTotales();
             addMensajesPerdidos();
-           escribeLog(3, og, dest);   
+            escribeLog(3, og, dest);   
         }   
         else{
             addMensajesTotales();

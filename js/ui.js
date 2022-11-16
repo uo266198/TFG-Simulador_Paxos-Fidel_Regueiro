@@ -7,8 +7,10 @@ var nodoDist = 7;
 var radio = 2;
 var colorNodos = "gray";
 var actual;
-var contIdentificaNodosAnim = 0;
+var idMsgActual;
 
+export var contIdentificaNodosAnim = 0;
+ 
 //?
 var timerCaidaEnUso = false;
 
@@ -177,8 +179,12 @@ function creaCirculoAnim(og, dest, tipo, ronda, valor){
     circuloAnim.setAttribute("data-toggle","tooltip")
     circuloAnim.setAttribute("data-placement","left")
     circuloAnim.setAttribute("data-html","true")
-    circuloAnim.addEventListener("click", openModalMensajes);
+
+    //No podemos evitar el envioo de mensajes en modo Auto
+    if(!modoAuto)  circuloAnim.addEventListener("click", openModalMensajes);
+   
     circuloAnim.setAttribute("title","<p> Mensaje: "+tipo+"</p><p> Origen: "+og+"</p><p> Destino: "+dest+"</p><p> Ronda: "+ronda+"</p><p> Valor: "+valor+"</p>");
+
     
 
     $(function () {
@@ -210,6 +216,11 @@ function creaCirculoAnim(og, dest, tipo, ronda, valor){
     datos[2] = circuloAnim;
     datos[3] = contIdentificaNodosAnim;
     
+    var msgs = {origen: og, destino: dest,  mensaje: tipo, ronda: ronda, valor: valor, perdido: false}
+
+    mensajesEnEnvio.set(contIdentificaNodosAnim.toString(), msgs);
+
+
     contIdentificaNodosAnim++;
 
     return datos;
@@ -266,9 +277,6 @@ function generaParticion(){
             part = 1;
         }
 
-        //
-      
-        //
         let texto = document.createTextNode("P"+part);
         textoPart.appendChild(texto);
         document.getElementById("svgFrame").appendChild(textoPart); 
@@ -380,16 +388,18 @@ function openModalInicio(){
 function openModalMensajes(e){
 
     pausaSim();
-    let id = this.dataset.key;
+    idMsgActual = this.dataset.key;
     //Esto no debería ser necesario, pero lo es PARA ESTE MODAL EN CONCRETO y no estoy seguro de por qué;
     $("#modalMensajes").appendTo("body")
     $("#modalMensajes").modal('show');
 
-    let og = mensajesEnEnvio[id][0];
-    let dst = mensajesEnEnvio[id][1];
-    let msg = mensajesEnEnvio[id][2];
-    let valor =mensajesEnEnvio[id][4];
+    mensajesEnEnvio.get(idMsgActual.toString());
 
+    let og      = mensajesEnEnvio.get(idMsgActual.toString()).origen;
+    let dst     = mensajesEnEnvio.get(idMsgActual.toString()).destino;
+    let msg     = mensajesEnEnvio.get(idMsgActual.toString()).mensaje;
+    let valor   = mensajesEnEnvio.get(idMsgActual.toString()).valor;
+    
     $("#pOrigen").text("Origen: "+og);
     $("#pDestino").text("Destino: "+dst);
     $("#pMensaje").text("Mensaje: "+msg);
@@ -463,7 +473,6 @@ function activarNodo(id){
 
 
 function setPreparado(id){ 
-    console.log(id);
     //Cambia el color 
     $("#nodo"+id).css("fill","steelBlue");
     nodos[id].estado = "ACEPTADOR";
@@ -585,6 +594,14 @@ $("#btnProponer").click(function(){
         nodos[actual].liderPropone(propuesta,nuevaRonda);
     }  
 });
+
+
+$("#btnPerderMsg").click(function(){ 
+    document.getElementById("nodoAnim"+idMsgActual).setAttribute("fill","red");
+    mensajesEnEnvio.get(idMsgActual.toString()).perdido = true;
+});
+
+
 
 $("#btnInfo").click(function(){
     pausaSim(true);
