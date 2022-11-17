@@ -11,7 +11,6 @@ var idMsgActual;
 
 export var contIdentificaNodosAnim = 0;
  
-//?
 var timerCaidaEnUso = false;
 
 
@@ -61,6 +60,11 @@ function escribeLog(tipoMsg, og, dst, msg){
         $("#logText").append("<div style=\"color:yellow\">"+"["+timerSim.getTimeString()+"] " + "<a style=\"color:green\"> " +"TODOS LOS NODOS HAN LLEGADO AL CONSENSO" + "<a style=\"color:white\">" + 
         "</br>");
     }
+
+    else if(tipoMsg == 11){
+        $("#logText").append("<div style=\"color:yellow\">"+"["+timerSim.getTimeString()+"] " + "<a style=\"color:green\"> " + "["+ og + "] " + "<a style=\"color:white\">" + 
+        "se pierde el paquete con destino " + "<a style=\"color:green\"> " + "[" + dst + "]"+" debido a la partición de red.</br>");
+      }
     else if(tipoMsg == -1){
         $("#logText").append(msg+"</br>");
     }
@@ -290,10 +294,16 @@ function generaParticion(){
 
     $("#btnPartir").children('svg').children("path").attr("d","m2.68 7.676 6.49-6.504a4 4 0 0 1 5.66 5.653l-1.477 1.529-5.006 5.006-1.523 1.472a4 4 0 0 1-5.653-5.66l.001-.002 1.505-1.492.001-.002Zm5.71-2.858a.5.5 0 1 0-.708.707.5.5 0 0 0 .707-.707ZM6.974 6.939a.5.5 0 1 0-.707-.707.5.5 0 0 0 .707.707ZM5.56 8.354a.5.5 0 1 0-.707-.708.5.5 0 0 0 .707.708Zm2.828 2.828a.5.5 0 1 0-.707-.707.5.5 0 0 0 .707.707Zm1.414-2.121a.5.5 0 1 0-.707.707.5.5 0 0 0 .707-.707Zm1.414-.707a.5.5 0 1 0-.706-.708.5.5 0 0 0 .707.708Zm-4.242.707a.5.5 0 1 0-.707.707.5.5 0 0 0 .707-.707Zm1.414-.707a.5.5 0 1 0-.707-.708.5.5 0 0 0 .707.708Zm1.414-2.122a.5.5 0 1 0-.707.707.5.5 0 0 0 .707-.707ZM8.646 3.354l4 4 .708-.708-4-4-.708.708Zm-1.292 9.292-4-4-.708.708 4 4 .708-.708Z")
 
-    /*console.log("red1")
-    console.log(red1.nodos_registrados)
-    console.log("red2")
-    console.log(red2.nodos_registrados)*/
+
+    //Comprobar todos los nodos 
+    let iterator = mensajesEnEnvio.keys();
+    for(let key of iterator){
+        
+        if(!red1.destinoPosible(mensajesEnEnvio.get(key).origen, mensajesEnEnvio.get(key).destino) || !red1.destinoPosible(mensajesEnEnvio.get(key).origen, mensajesEnEnvio.get(key).destino)){
+            document.getElementById("nodoAnim"+key).setAttribute("fill","red");
+        }
+    }
+            
 }
 
 //Devuelve todos los nodos a la misma red y borra las particiones
@@ -302,7 +312,6 @@ function eliminaParticion(){
     red1.borrar_nodos();
     red2.borrar_nodos();
 
-    console.log(document.getElementById("svgPart"));
     document.getElementById("svgPart").remove();
     $("#btnPartir").children('span').text("Crear Partición");
     $("#btnPartir").children('svg').children("path").attr("d","M3.5 3.5c-.614-.884-.074-1.962.858-2.5L8 7.226 11.642 1c.932.538 1.472 1.616.858 2.5L8.81 8.61l1.556 2.661a2.5 2.5 0 1 1-.794.637L8 9.73l-1.572 2.177a2.5 2.5 0 1 1-.794-.637L7.19 8.61 3.5 3.5zm2.5 10a1.5 1.5 0 1 0-3 0 1.5 1.5 0 0 0 3 0zm7 0a1.5 1.5 0 1 0-3 0 1.5 1.5 0 0 0 3 0z")
@@ -329,8 +338,8 @@ function tooltipNodos(e){
 }
 
 //Modifica el texto del nodo lider para indicar su estatus
-function muestraTextoLider(id){
-
+function muestraTextoLider(id, ronda){
+    $("#nodo"+id).css("fill", "gold");
     let nodo = document.getElementById("nodo"+id);
     let posx = nodo.getAttribute("cx");
     let posy = nodo.getAttribute("cy");
@@ -343,7 +352,7 @@ function muestraTextoLider(id){
     liderTextoSVG.setAttribute("text-anchor", "middle");
     liderTextoSVG.setAttribute("pointer-events","none");
 
-    let texto = document.createTextNode("LIDER");
+    let texto = document.createTextNode("LIDER ["+ronda+"]");
     let frame = document.getElementById("svgFrame");
     liderTextoSVG.appendChild(texto);
     frame.appendChild(liderTextoSVG); 
@@ -505,7 +514,6 @@ function statsFinales(){
 }
 
 function setLider(id){
-    $("#nodo"+id).css("fill", "gold");
     if(!modoAuto) escribeLog(7,id);
     nodos[id].estado = "LIDER";
 }
@@ -589,7 +597,6 @@ $("#btnProponer").click(function(){
     var propuesta = $("#textPropuesta").val();
     var nuevaRonda = $("#textRonda").val();
     if(propuesta !="" && nuevaRonda !=""){
-        muestraTextoLider(actual);
         escribeLog("Nodo "+actual+" se prepara para proponer el valor:  \""+ propuesta+ " "+nuevaRonda+"\"");  
         nodos[actual].liderPropone(propuesta,nuevaRonda);
     }  

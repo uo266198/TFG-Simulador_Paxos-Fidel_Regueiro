@@ -22,8 +22,7 @@ class Nodo {
         // Guarda la referencia a las animaciónes, necesario para pausar;
         this.waitAnim;
 
-        this.contadorAceptadores = 1
-        this.contadorAceptado = 1;
+        this.contadorMensajes = 1;
         this.ronda = -1;
         this.valorPropuesto;
 
@@ -94,7 +93,7 @@ class Nodo {
                         //Si la ronda es igual a la mayor almacenada, y no hemos aceptado un valor con anterioridad
                         if(msg[1] == this.ronda && !this.aceptado){
                             this.valorPropuesto = msg[2];
-                            this.contadorAceptado++;
+                            this.contadorMensajes++;
 
                             this.aceptado = true;
 
@@ -104,14 +103,20 @@ class Nodo {
                             }
                             setPropuesto(this.id);
                             await this.enviar(["ACEPTACION",this.ronda, this.valorPropuesto], dest, this.id)
-
+                            
+                            if(this.contadorMensajes>=quorum){
+                                //this.aceptado = false;
+                                setConsenso(this.id);
+                                escribeLog(2, this.id)  
+                                consensoFinal();
+                            }   
                         }
                     }  
 
                     else if(msg[0] == "ACEPTACION"){
-                        this.contadorAceptado++;
-                        if(this.contadorAceptado>=quorum){
-                            this.aceptado = false;
+                        this.contadorMensajes++;
+                        if(this.contadorMensajes>=quorum){
+                            //this.aceptado = false;
                             setConsenso(this.id);
                             escribeLog(2, this.id)  
                             consensoFinal();
@@ -139,7 +144,7 @@ class Nodo {
                                 dest.push(nodos[i].id);
                             }
 
-                            this.contadorAceptado++;
+                            this.contadorMensajes++;
 
                            
                             await this.enviar(["ACEPTACION", this.ronda, this.valorPropuesto], dest, this.id)
@@ -148,18 +153,18 @@ class Nodo {
                     }
 
                     else if(msg[0] == "PROMESA"){    
-                        this.contadorAceptadores++;
-                        console.log("ACEPTADORES ID"+this.id+" " + this.contadorAceptadores);
+                        this.contadorMensajes++;
+                        console.log("ACEPTADORES ID"+this.id+" " + this.contadorMensajes);
                         if(msg[1] > this.ronda){
                             this.ronda = msg[1];
                             if(msg[2] != null) this.valorPropuesto = msg[2];
                             setPreparado(this.id);
                             
                         }
-                        else if(this.contadorAceptadores >= quorum && !this.aceptado){
+                        else if(this.contadorMensajes >= quorum && !this.aceptado){
                             let valorTemp;
                             //Lo reseteamos y lo usamos para esperar al quorum de mensajes de los demás nodos.
-                            this.contadorAceptadores = 1;
+                            this.contadorMensajes = 1;
                             if(this.valorPropuesto == undefined){
                                 this.aceptado = true;
 
@@ -174,6 +179,7 @@ class Nodo {
                                 dest.push(nodos[i].id);
                             }
                             setLider(this.id);
+                            this.contadorMensajes = 1;
                             escribeLog(1, this.id)
                             await this.enviar(["PROPUESTA",this.ronda ,this.valorPropuesto], dest, this.id);
                         }
@@ -189,9 +195,9 @@ class Nodo {
                     }
 
                     else if(msg[0] == "ACEPTACION"){
-                        this.contadorAceptado++;
+                        this.contadorMensajes++;
 
-                        if(this.contadorAceptado >= quorum){
+                        if(this.contadorMensajes >= quorum){
                             setConsenso(this.id);
                             consensoFinal();
                             escribeLog(2, this.id)    
@@ -199,6 +205,7 @@ class Nodo {
                     }
                 }
             } 
+            console.log(quorum)
         }  
     }
     
@@ -266,7 +273,7 @@ class Nodo {
         if(propuesto !=undefined ){
             this.valorPropuesto = propuesto;
         }
-        muestraTextoLider(this.id);
+        muestraTextoLider(this.id, this.ronda);
         this.estado = "LIDER";
 
         await this.red.enviar(msg, destino, this.id);

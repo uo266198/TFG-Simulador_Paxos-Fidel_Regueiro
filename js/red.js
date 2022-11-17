@@ -72,7 +72,7 @@ class Red {
         return false;
     }
 
-    destino_posible(og, dest){
+    destinoPosible(og, dest){
         if(this.incluye_nodo(dest) && this.incluye_nodo(og)){
             return true;
         }
@@ -135,10 +135,10 @@ class Red {
         var rand = (Math.floor(Math.random() * 101));
        
         if(hayParticion){
-            if(this.destino_posible(og, dest) && msg[0] != "PERDIDO" &&  !mensajesEnEnvio.get(datos[3].toString()).perdido){
+            if(this.destinoPosible(og, dest) && msg[0] != "PERDIDO" &&  !mensajesEnEnvio.get(datos[3].toString()).perdido){
                 this.nodos_registrados[dest].recv_chn.push([msg, og]);  
             }
-            else console.log("Msg origen: " +  og + " destino: " + dest + " perdido por la partición");
+            else escribeLog(11,og, dest, null);
         }
         
         else if(msg[0] == "PERDIDO" ||  mensajesEnEnvio.get(datos[3].toString()).perdido) {
