@@ -202,64 +202,96 @@
                 <div class="modal-body">
                     <p style="margin-left: 1.5%;  margin-right: 1.5%; margin-top: 1.5%;" class="h6">MODO AUTOMÁTICO: </p>
                     <p style="margin-left: 1.5%; margin-right: 1.5%;">
-                        A través de unos datos predefinidos de probabilidad de caída de los nodos y de pérdida de mensajes, el simulador decide qué nodo o nodos se proponen
-                        como líderes, proponiendo un valor automático de una lista de palabras. También pueden ocurrir particiones de red (x% de probabilidad cada x segundos).
+                        En busca de simular una interacción lo más real posible del protocolo, los nodos pueden proponerse como líderes automáticamente y a su vez los nodos se pueden caer y 
+                        los paquetes perderse, aunque estos valores pueden ser modificados. Los mensajes que compartan los nodos se eligen automáticamente de una lista de palabras comunes.
+                        Al finalizar el intercambio de mensajes se muestran estadísticas ocurridas durante el proceso.
                     </p>
 
                     <p style="margin-left: 1.5%;  margin-right: 1.5%;" class="h6">MODO MANUAL: </p>
                     <p style="margin-left: 1.5%;  margin-right: 1.5%; " >
                         El propio usuario podrá elegir la probabilidad de caída de un nodo, de pérdida de paquetes, cuándo ocurre una partición de red
-                        y deberá elegir manualmente qué nodo se propone como líder y podrá definir el valor a proponer.             
+                        y deberá elegir manualmente qué nodo se propone como líder y podrá definir el valor a proponer. También es posible elegir un mensaje y evitar que  llegue a su destino.           
                     </p>
 
                     <p style="margin-left: 1.5%;  margin-right: 1.5%;" class="h6">MENSAJES: </p>
                     <p style="margin-left: 1.5%;  margin-right: 1.5%;">
                         <svg height="20" width="20" style="margin-left: 1.5%;  margin-right: 1.5%;">
-                            <circle cx="10" cy="10" r="10" fill="yellow" />
+                            <circle cx="10" cy="10" r="10" fill="dodgerBlue" />
                         </svg>
-                        Mensaje "PREPARA": enviado por el proponente a todos los nodos esperando que se comprometan con él.
+                        Mensaje "PREPARACIÓN": enviado por el proponente a todos los nodos esperando que se comprometan con él.
                     </p>
                     <p style="margin-left: 1.5%;  margin-right: 1.5%;">
                         <svg height="20" width="20" style="margin-left: 1.5%;  margin-right: 1.5%;">
-                            <circle cx="10" cy="10" r="10" fill="green" />
+                            <circle cx="10" cy="10" r="10" fill="LemonChiffon" />
                         </svg>
-                        Mensaje "PROMESA": enviado por los aceptadores a el proponente, confirmando su participación.
+                        Mensaje "PROMESA": enviado por los aceptadores al proponente, confirmando a éste como líder.
 
                     </p>
                     <p style="margin-left: 1.5%;  margin-right: 1.5%; vertical-align: text-bottom;">
                         <svg height="20" width="20" style="margin-left: 1.5%;  margin-right: 1.5%;">
-                            <circle cx="10" cy="10" r="10" fill="blue" />
+                            <circle cx="10" cy="10" r="10" fill="greenYellow" />
                         </svg>
                         
-                    Mensaje "ACEPTAR": contiene el valor propuesto por el líder. En primer lugar enviado por el proponente a todos los nodos, estos al recibirlo envían al resto de nodos  
-                    el mismo mensaje para poder llegar al consenso.
+                    Mensaje "PROPUESTA": contiene el valor propuesto por el líder.
                     </p>
+
+                    <p style="margin-left: 1.5%;  margin-right: 1.5%; vertical-align: text-bottom;">
+                        <svg height="20" width="20" style="margin-left: 1.5%;  margin-right: 1.5%;">
+                            <circle cx="10" cy="10" r="10" fill="LawnGreen" />
+                        </svg>
                         
+                    Mensaje "ACEPTACIÓN": contiene el valor una vez que el líder ha alcanzado el consenso y lo parte a los demás nodos, y estos entre sí para alcanzar el consenso total.
+                    </p>
+
+                    
+                    <p style="margin-left: 1.5%;  margin-right: 1.5%; vertical-align: text-bottom;">
+                        <svg height="20" width="20" style="margin-left: 1.5%;  margin-right: 1.5%;">
+                            <circle cx="10" cy="10" r="10" fill="red" />
+                        </svg>
+                        
+                    Mensaje "PERDIDO": simula la pérdida de un mensaje dentro de la red.
+                    </p>
+
                     <p style="margin-left: 1.5%;  margin-right: 1.5%; margin-top: 1.5%;" class="h6">NODOS: </p>
                     <p style="margin-left: 1.5%;  margin-right: 1.5%;">
                         <svg height="20" width="20" style="margin-left: 1.5%;  margin-right: 1.5%;">
-                            <circle cx="10" cy="10" r="10" fill="blue" />
+                            <circle cx="10" cy="10" r="10" fill="grey" />
                         </svg>
-                        Nodo Aceptador: a la espera de recibir una promeso de ser elegido como líder y proponente.
+                        Nodo Aceptador Inactivo: estado inicial a la espera de recibir una promesa, de ser elegido como proponente o de fallar.
                     </p>
+
                     <p style="margin-left: 1.5%;  margin-right: 1.5%;">
                         <svg height="20" width="20" style="margin-left: 1.5%;  margin-right: 1.5%;">
-                            <circle cx="10" cy="10" r="10" fill="yellow" />
+                            <circle cx="10" cy="10" r="10" fill="gold" />
                         </svg>
                         Nodo Líder/Proponente: es quíen comienza el envío de los mensajes.
                     </p>
                     <p style="margin-left: 1.5%;  margin-right: 1.5%; vertical-align: text-bottom;">
                         <svg height="20" width="20" style="margin-left: 1.5%;  margin-right: 1.5%;">
-                            <circle cx="10" cy="10" r="10" fill="green" />
+                            <circle cx="10" cy="10" r="10" fill="steelBlue" />
                         </svg>
-                        Nodo Aprendiz/Consenso alcanzado: en esta siumlación todos los nodos hacen de aprendices, al llegar al consenso cambiarán a este estado
+                        Nodo Aceptador: ha recibido un mensaje de propuesta de un proponente y devuelve su promesa a este.
                     </p>
 
                     <p style="margin-left: 1.5%;  margin-right: 1.5%; vertical-align: text-bottom;">
                         <svg height="20" width="20" style="margin-left: 1.5%;  margin-right: 1.5%;">
-                            <circle cx="10" cy="10" r="10" fill="gray" />
+                            <circle cx="10" cy="10" r="10" fill="yellow" />
                         </svg>
-                        Nodo pausado/caído: el nodo no está disponible actualmente, ya sea por una caída aleatoria o por que se ha pausado manualmente.
+                        Nodo Aceptador Comprometido: ha recibido el valor de un líder y ha de reenviar este mensaje a todos los demás nodos.
+                    </p>
+
+                    <p style="margin-left: 1.5%;  margin-right: 1.5%; vertical-align: text-bottom;">
+                        <svg height="20" width="20" style="margin-left: 1.5%;  margin-right: 1.5%;">
+                            <circle cx="10" cy="10" r="10" fill="darkGreen" />
+                        </svg>
+                        Nodo Aceptador con consenso: ha recibido la mayoría de mensajes necesaria para alcanzar el consenso.
+                    </p>
+
+                    <p style="margin-left: 1.5%;  margin-right: 1.5%; vertical-align: text-bottom;">
+                        <svg height="20" width="20" style="margin-left: 1.5%;  margin-right: 1.5%;">
+                            <circle cx="10" cy="10" r="10" fill="red" />
+                        </svg>
+                        Nodo caído: este nodo se ha caído, ya sea aleatoriamente o por acción del usuario y no puede ni enviar ni recibir mensajes.
                     </p>
 
                     
@@ -282,7 +314,7 @@
                         Recarga el simulador y vuelve a mostrar las opciones iniciales.
                     </p>
 
-                    <p style="margin-left: 1.5%;  margin-right: 1.5%;" class="h6">PARTICIÓN DE RED
+                    <p style="margin-left: 1.5%;  margin-right: 1.5%;" class="h6">CREAR PARTICIÓN
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-scissors" viewBox="0 0 16 16">
                             <path d="M3.5 3.5c-.614-.884-.074-1.962.858-2.5L8 7.226 11.642 1c.932.538 1.472 1.616.858 2.5L8.81 8.61l1.556 2.661a2.5 2.5 0 1 1-.794.637L8 9.73l-1.572 2.177a2.5 2.5 0 1 1-.794-.637L7.19 8.61 3.5 3.5zm2.5 10a1.5 1.5 0 1 0-3 0 1.5 1.5 0 0 0 3 0zm7 0a1.5 1.5 0 1 0-3 0 1.5 1.5 0 0 0 3 0z"/>
                           </svg>

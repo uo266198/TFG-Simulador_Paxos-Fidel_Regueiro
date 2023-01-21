@@ -361,23 +361,31 @@ function muestraTextoLider(id, ronda){
 
 //Quita el texto  del lider
 function quitaTextoLider(id){
-    getElementById("id","newTextoSVG"+id).remove;
+    if(document.getElementById("id","newTextoSVG"+id) != null)  document.getElementById("id","newTextoSVG"+id).remove;
+   
+   
 }
 
 //Pone por defecto los últimos valores seleccionados
 function valoresGuardados(){
-    $("#dropDownValue").text(localStorage.getItem("numNodos"));
 
-    let velocidad = localStorage.getItem("velocidad");
-    if(velocidad == 500){
+    if(localStorage.getItem("numNodos") == null){ $("#dropDownValue").text("3"); }
+    else { $("#dropDownValue").text(localStorage.getItem("numNodos")); }
+   
+    if(localStorage.getItem("velocidad") == null){ timerSim.velocidad = 1000; }
+    else { timerSim.velocidad = localStorage.getItem("velocidad")}
+
+    if(timerSim.velocidad == 1000){
+        $("#btnSpeedText").text("x1");
+        setVelocidad(1000);
+    }
+    else if(timerSim.velocidad == 500){
         $("#btnSpeedText").text("x2");
         setVelocidad(500);
-        timerSim.velocidad = 500;
     }
-    else if(velocidad == 250){
+    else if(timerSim.velocidad == 250){
         $("#btnSpeedText").text("x3");
         setVelocidad(250);
-        timerSim.velocidad = 250;
     }
 
     if(localStorage.getItem("modoAuto") == "false"){
@@ -435,12 +443,16 @@ function reanudaSim(){
 
     setSimPaused(false);
     timerSim.reanudaTimer();
+
+    //let cirPros =  document.getElementById("progreso"+0).getAttribute("style")
+    //console.log(cirPros)
 }
 
 function pausaSim(){
     $("#btnPlay").attr('class', "btn btn-danger btn-sm ");
     $("#btnPlay").children('svg').children('path').attr('d', "m11.596 8.697-6.363 3.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01 1.233-.696l6.363 3.692a.802.802 0 0 1 0 1.393z");
      
+    
     if(!simPaused){
         for(let i=0; i<nodos.length; i++){
             if(typeof nodos[i].waitAnim !== "undefined"){
@@ -448,18 +460,24 @@ function pausaSim(){
             } 
             if(typeof nodos[i].red.animacionesRed.length != 0){
                 for(let j=0; j<nodos[i].red.animacionesRed.length; j++){
-                    nodos[i].red.animacionesRed[j].pause();
+                nodos[i].red.animacionesRed[j].pause();
                 }
-            }         
+            }  
+      
         }
     }
 
-   /* for(let i=0; i<timersInternos.length; i++){  
-        if(!timersInternos[i].pausado) timersInternos[i].pausaTimerInterno();
-    }*/
+   
 
     setSimPaused(true);
     timerSim.pausaTimer();
+
+
+    for(let i=0; i<nodos.length; i++){
+        if(typeof nodos[i].waitAnim !== "undefined"){
+            let cirPros =  document.getElementById("progreso"+i).getAttribute("style")  
+        } 
+    }
 }
 
 function desactivarNodo(id){
@@ -472,7 +490,11 @@ function desactivarNodo(id){
 
 function activarNodo(id){
     //Cambia el color
-    if(nodos[id].estado == "ACEPTADOR" && nodos[id].ronda != -1) $("#nodo"+id).css("fill","cyan");
+    if(nodos[id].consenso) $("#nodo"+id).css("fill","green");
+    else if(nodos[id].estado == "ACEPTADOR" && nodos[id].ronda != -1){
+        if(nodos[id].valorPropuesto != null) $("#nodo"+id).css("fill","yellow");
+        else $("#nodo"+id).css("fill","steelBlue");
+    } 
     else if(nodos[id].estado == "LIDER") $("#nodo"+id).css("fill","gold");
     else $("#nodo"+id).css("fill",colorNodos);
     
@@ -485,12 +507,14 @@ function setPreparado(id){
     //Cambia el color 
     $("#nodo"+id).css("fill","steelBlue");
     nodos[id].estado = "ACEPTADOR";
+    quitaTextoLider(id);
 }
 
 function setPropuesto(id){ 
     //Cambia el color 
     $("#nodo"+id).css("fill","Yellow");
     nodos[id].estado = "ACEPTADOR";
+    quitaTextoLider(id);
 }
 
 function setConsenso(id){
@@ -500,6 +524,7 @@ function setConsenso(id){
     nodos[id].aceptado = false;
     nodos[id].contadorAceptadores = 1;
     nodos[id].contadorAceptado = 1;
+    quitaTextoLider(id);
     
 }
 function statsFinales(){
@@ -513,20 +538,29 @@ function statsFinales(){
     $("#finNumLideres").append("Número de líderes propuestos: <b>"+ numLideres+"</b>");
 }
 
-function setLider(id){
+function setLider(id, ronda){
+
     if(!modoAuto) escribeLog(7,id);
     nodos[id].estado = "LIDER";
+    muestraTextoLider(id, ronda);
+}
+
+
+function setProponente(id){
+    if(!modoAuto) escribeLog(7,id);
+    nodos[id].estado = "PROPONENTE";
+    quitaTextoLider(id);
 }
 
 function desactivaBotonesAuto(){
-    setProbFalloNodo(20);
-    setProbFalloRed(12);
+    setProbFalloNodo(12);
+    setProbFalloRed(20);
 
     $('#probCaida').html( "Probabilidad de fallo de un nodo: " + probFalloNodo + "%" );
     $('#probPerdida').html( "Probabilidad de pérdida de paquetes: " +  probFalloRed  + "%" );
 
-    document.getElementById("sliderPerdida").disabled = true;
-    document.getElementById("sliderCaida").disabled = true;
+   // document.getElementById("sliderPerdida").disabled = true;
+    //document.getElementById("sliderCaida").disabled = true;
 
     //$("#btnPartir").attr('disabled', 'disabled');
     $("#btnProponer").attr('disabled', 'disabled');
@@ -535,8 +569,8 @@ function desactivaBotonesAuto(){
 function desactivaBotonesFin(){
     $("#btnPartir").attr('disabled', 'disabled');
     $("#btnProponer").attr('disabled', 'disabled');
-    document.getElementById("sliderPerdida").disabled = true;
-    document.getElementById("sliderCaida").disabled = true;
+    //document.getElementById("sliderPerdida").disabled = true;
+    //document.getElementById("sliderCaida").disabled = true;
     $("#btnPlay").attr('disabled', 'disabled');
     $("#btnSpeed").attr('disabled', 'disabled');
 
@@ -598,7 +632,7 @@ $("#btnProponer").click(function(){
     var nuevaRonda = $("#textRonda").val();
     if(propuesta !="" && nuevaRonda !=""){
         escribeLog("Nodo "+actual+" se prepara para proponer el valor:  \""+ propuesta+ " "+nuevaRonda+"\"");  
-        nodos[actual].liderPropone(propuesta,nuevaRonda);
+        nodos[actual].proponer(propuesta,nuevaRonda);
     }  
 });
 
@@ -687,4 +721,4 @@ $('#btnSuspender').click(function(e){
 
 export{escribeLog, openModalInfo, openModalInicio, pausaSim, reanudaSim, creaPoligono, setLider, setPreparado, setConsenso, 
     creaCirculoAnim, desactivarNodo, activarNodo, desactivaBotonesAuto, generaParticion, openModalEstadisticas, statsFinales,
-    desactivaBotonesFin, muestraTextoLider, valoresGuardados, setPropuesto}
+    desactivaBotonesFin, muestraTextoLider, valoresGuardados, setPropuesto, setProponente}

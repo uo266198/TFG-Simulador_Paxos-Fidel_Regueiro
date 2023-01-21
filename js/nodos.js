@@ -1,7 +1,7 @@
 import{Channel} from './channels.js'
 import {nodos, quorum, rondaGlobal, velocidad, simPaused, modoAuto, probFalloNodo, wait, setRonda, timersInternos, 
     addTimerInterno, maxTiempoRespuesta, minTiempoRespuesta, valoresProponer, consensoFinal, addNumCaidas, addNumLideres} from './paxos.js';
-import {desactivarNodo, setPreparado, setConsenso, activarNodo, escribeLog, setLider, muestraTextoLider, setPropuesto} from './ui.js';
+import {desactivarNodo, setPreparado, setConsenso, activarNodo, escribeLog, setLider, muestraTextoLider, setPropuesto, setProponente} from './ui.js';
 import {TimerInterno} from './timerInterno.js';
 
 
@@ -19,14 +19,12 @@ class Nodo {
         this.consenso = false;
         this.estado = "ACEPTADOR";
 
-        // Guarda la referencia a las animaciónes, necesario para pausar;
+        // Guarda la referencia a las animaciones, necesario para pausar;
         this.waitAnim;
 
         this.contadorMensajes = 1;
         this.ronda = -1;
         this.valorPropuesto;
-
-        
         //  Timers internos de cada nodo  //
         this.timerCaida = new TimerInterno(this.id, "caida");               // Timer que cada x tiempo hace una tirada de caida del nodo.
         this.timerRecuperacion = new TimerInterno(this.id, "recuperacion"); // "" de recuperación del nodo caido.
@@ -34,11 +32,11 @@ class Nodo {
 
         addTimerInterno(this.timerCaida);
         addTimerInterno(this.timerRecuperacion);
-       // addTimerInterno(this.timerRecepcion);
+        addTimerInterno(this.timerRecepcion);
     
         if(modoAuto){
             this.tiempoCaidaNodo();
-            this.animaTemporizadorRecepcion();
+            //this.animaTemporizadorRecepcion();
             this.tiempoRecepcion();
         }
     }
@@ -70,6 +68,142 @@ class Nodo {
                 //await this.tiempoRecepcion();
                 escribeLog(0, this.id, orig, msg);
 
+                //Estado 1: ACEPTADOR: ha de recibir un mensaje de preparación. Envía promesa. Si ya se ha comprometido, recibe el valor y envía el OK (ACEPTACIÓN) de vuelta al líder.
+                if(this.estado == "ACEPTADOR"){
+                    if(msg[0] == "PREPARACION"){            // Mensaje de compromiso con un líder
+                        if(msg[1] > this.ronda){            // Recibo una ronda mayor que la última que he recibido.
+                            setPreparado(this.id);          // Me he comprometido a un líder.
+                            this.ronda = msg[1];
+                            await this.enviar(["PROMESA",this.ronda,null], [orig], this.id);      // else          
+                        }  
+                        
+                        else{                               // La ronda que recibo es inferior a la última que haya visto.
+                            // Indico al nodo que envió la promesa que ya me he comprometido con un valor y una ronda mayor
+                            await this.enviar(["PROMESA",this.ronda ,this.valorPropuesto], [orig], this.id);  
+                        }   
+                    }
+
+                    else if(msg[0] == "PROPUESTA"){         // Tras comprometerse con un líder, recibo el valor del consenso
+                        if(msg[1] > this.ronda){           // Ronda mayor, por lo tanto debo considerar este mensaje como nuevo compromiso
+                            this.ronda = msg[1];
+                            this.valorPropuesto = msg[2];
+                            setPropuesto(this.id)           //Cambiamos el color a amarillo para que sepamos que ya ha obtenido un valor
+                            
+                            //Envío del mensaje ACEPTACION que cofirma que hemos recibido el valor a consensuar a todos los demás nodos. (Líder incluido)
+                            var dest = [];
+                            for(let i = 0; i<nodos.length ; i++){
+                                dest.push(nodos[i].id);
+                            }
+                            setPropuesto(this.id);
+                            await this.enviar(["ACEPTACION",this.ronda, this.valorPropuesto], dest, this.id)
+                        }
+                        else{
+                            this.valorPropuesto = msg[2];
+                            var dest = [];
+                            for(let i = 0; i<nodos.length ; i++){
+                                dest.push(nodos[i].id);
+                            }
+                            setPropuesto(this.id);
+                            await this.enviar(["ACEPTACION",this.ronda, this.valorPropuesto], dest, this.id)
+                        }
+
+                        this.contadorMensajes ++;
+                        if(this.contadorMensajes>=quorum){
+                            setConsenso(this.id);
+                            escribeLog(2, this.id)  
+                            consensoFinal();
+                        }
+                        
+                    }
+
+                    else if(msg[0] == "ACEPTACION"){        //Mensaje recibido por parte de los demás nodos de la red que confirman en valor de consenso.
+                        this.contadorMensajes++;
+                        if(this.contadorMensajes>=quorum){  //Consenso
+                            //this.aceptado = false;
+                            setConsenso(this.id);
+                            escribeLog(2, this.id)  
+                            consensoFinal();
+                        }     
+                    }
+                } //FIN aceptador
+
+                //Estado 2: Proponente: envía el mensaje de preparación y recibe las promesas por parte de los aceptadores. Al recibir una mayoría se sitúa como líder.
+                else if(this.estado == "PROPONENTE"){
+                    if(msg[0] == "PROMESA"){                // Mensaje enviado por un aceptador que confirma su promesa a aceptar el valor que envíe este nodo si se convierte en líder
+                        this.contadorMensajes++;            // De consenso
+                        console.log(this.contadorMensajes);
+                        //console.log("ACEPTADORES ID"+this.id+" " + this.contadorMensajes);
+                        if(msg[1] > this.ronda){            // En este caso, el nodo ya se había comprometido con un proponente con una ronda mayor, por lo tanto este nodo copia la ronda y el valor
+                            this.ronda = msg[1];            // y lo envía a los demás nodos.
+                            if(msg[2] != null) this.valorPropuesto = msg[2];
+                            this.contadorMensajes = 2;      //Él mismo y el recibido.
+
+                            var dest = [];
+                            for(let i = 0; i<nodos.length ; i++){
+                                dest.push(nodos[i].id);
+                            }
+                            setPropuesto(this.id);
+                            await this.enviar(["ACEPTACION",this.ronda, this.valorPropuesto], dest, this.id)
+                            //setPreparado(this.id);
+                            
+                        }
+                        else if(this.contadorMensajes >= quorum){
+                            console.log("QUE")
+                            setLider(this.id, this.ronda);
+                            this.contadorMensajes = 1;
+                            let valorTemp;
+                            //Lo reseteamos y lo usamos para esperar al quorum de mensajes de los demás nodos.
+                            this.contadorMensajes = 1;
+                            if(this.valorPropuesto == undefined){
+                                this.aceptado = true;
+
+                                //Un valor aleatorio de la lista de cadenas de texto
+                                valorTemp = valoresProponer[Math.floor(Math.random() * valoresProponer.length)];
+                                this.valorPropuesto = valorTemp;
+                                
+                            }
+
+                            var dest = [];
+                            for(let i = 0; i<nodos.length ; i++){
+                                dest.push(nodos[i].id);
+                            }
+
+                            await this.enviar(["PROPUESTA", this.ronda, this.valorPropuesto], dest, this.id)
+                        }
+                    }
+
+                    else if(msg[0] == "ACEPTACION"){
+                        this.contadorMensajes++;
+
+                        if(this.contadorMensajes >= quorum){
+                            setConsenso(this.id);
+                            consensoFinal();
+                            escribeLog(2, this.id)    
+                        }
+                    }
+                    
+                    //Ya que en esta versión del protocolo un Proponente es a su vez un aprendiz, se da el caso de que un proponente tenga que pasar a ser aceptador
+                    else if(msg[0] == "PREPARACION"){
+                        if(msg[1] > this.ronda){
+                            setPreparado(this.id);          // Me he comprometido a un líder.
+                            this.ronda = msg[1];
+                            await this.enviar(["PROMESA",this.ronda,null], [orig], this.id);     
+                        }        
+                    }
+                }
+
+                else if(this.estado == "LIDER"){
+                    if(msg[0] == "ACEPTACION"){
+                        this.contadorMensajes++;
+                        if(this.contadorMensajes >= quorum){
+                            setConsenso(this.id);
+                            consensoFinal();
+                            escribeLog(2, this.id)    
+                        }
+                    }
+                }/*
+
+                /*
                 //MAQUINA DE ESTADOS
                 if(this.estado == "ACEPTADOR"){
                     if(msg[0] > this.ronda && this.consenso) !this.consenso;
@@ -204,8 +338,8 @@ class Nodo {
                         }
                     }
                 }
-            } 
-            console.log(quorum)
+            } */
+            }
         }  
     }
     
@@ -220,6 +354,7 @@ class Nodo {
     }
 
     async animaTemporizadorRecepcion(tiempo){
+        console.log("a");
         let circuloAnim = document.getElementById("progreso"+this.id);
         let circunferencia = circuloAnim.getAttribute("r")*2*Math.PI;
 
@@ -234,13 +369,15 @@ class Nodo {
             autoplay: false,
         });
               
-        this.waitAnim.play();
+        if(!simPaused){
+            this.waitAnim.play();
+        }
 
         await this.waitAnim.finished;
-        circuloAnim.style.visibility = "hidden";
+        //circuloAnim.style.visibility = "hidden";
     }  
 
-    async liderPropone(propuesto, nuevaRonda){ 
+    async proponer(propuesto, nuevaRonda){ 
 
         addNumLideres();
         if(this.pausado) activarNodo(this.id);
@@ -273,8 +410,9 @@ class Nodo {
         if(propuesto !=undefined ){
             this.valorPropuesto = propuesto;
         }
-        muestraTextoLider(this.id, this.ronda);
-        this.estado = "LIDER";
+
+        setProponente(this.id, this.ronda);
+        this.estado = "PROPONENTE";
 
         await this.red.enviar(msg, destino, this.id);
         
@@ -285,6 +423,7 @@ class Nodo {
 
     // Tirada para recuperar el nodo de vuelta. 
     async tiempoRecuperaNodo (){
+        this.waitAnim.pause();
         let vrand =  velocidad * (Math.floor(Math.random() * 3)+5);
 
         let resultado = await this.timerRecuperacion.start(vrand);
@@ -296,6 +435,7 @@ class Nodo {
                 this.tiempoRecuperaNodo();
             }
             else{
+                this.waitAnim.play();
                 activarNodo(this.id);
             }
         }
@@ -305,15 +445,14 @@ class Nodo {
     // si no, se vuelve a llamar a sí misma
     // El temporizador no se llama al desactivar manualmente los nodos, per sí al caerse con probabilidad > 0.
     async tiempoCaidaNodo(){
-           
         let vrand =  velocidad * (Math.floor(Math.random() * 20)+10);
         let resultado = await this.timerCaida.start(vrand);
         if(resultado == 0){
-            //console.log("Timer de caida finaliza "+this.id)
             let rand = (Math.floor(Math.random() * 99)+1);
             if(rand < probFalloNodo && !this.pausado && !this.consenso ){
                 addNumCaidas();
                 desactivarNodo(this.id);
+                
                 await this.tiempoRecuperaNodo();
             }
             else{
@@ -332,16 +471,15 @@ class Nodo {
         let vrand = (Math.floor(Math.random() *(maxTiempoRespuesta - minTiempoRespuesta + 1))+ minTiempoRespuesta);
       
         await this.animaTemporizadorRecepcion(vrand/temp);
-        
-        if(modoAuto && this.estado != "LIDER"){
+        if(modoAuto && this.estado != "LIDER" && !this.consenso){
             escribeLog(8, this.id);
-            let valorTemp = valoresProponer[Math.floor(Math.random() * valoresProponer.length)];
-            this.valorPropuesto = valorTemp;
-            await this.liderPropone(valorTemp, -1) 
+            //let valorTemp = valoresProponer[Math.floor(Math.random() * valoresProponer.length)];
+            //this.valorPropuesto = valorTemp;
+            await this.proponer(null, -1) 
         }
-        else if(this.estado == "LIDER"){
+        else if((this.estado == "LIDER" || this.estado == "PROPONENTE") && !this.consenso){
             escribeLog(9, this.id);
-            await this.liderPropone(this.valorPropuesto, this.ronda+1);               
+            await this.proponer(this.valorPropuesto, this.ronda+1);               
         }
     }  
 }
