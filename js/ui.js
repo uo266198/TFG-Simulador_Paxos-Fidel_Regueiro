@@ -158,7 +158,7 @@ class UI{
         if(localStorage.getItem("numNodos") == null){ $("#dropDownValue").text("3"); }
         else { $("#dropDownValue").text(localStorage.getItem("numNodos")); }
     
-        if(localStorage.getItem("velocidad") == null){ timerSim.velocidad = 1000; }
+        if(localStorage.getItem("velocidad") == null){ Paxos.timerSim.velocidad = 1000; }
         else { Paxos.timerSim.velocidad = localStorage.getItem("velocidad")}
 
         if(Paxos.timerSim.velocidad == 1000){
