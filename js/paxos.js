@@ -1,175 +1,115 @@
-import {Timer} from './timer.js';
-import {escribeLog, creaPoligono, openModalInicio, reanudaSim, desactivaBotonesAuto, pausaSim, 
-        openModalEstadisticas, statsFinales, desactivaBotonesFin, valoresGuardados} from './ui.js';
 import {Nodo} from './nodos.js';
+import {Timer} from './timer.js';
+import {UI} from './ui.js';
 import {Red} from './red.js';
 
-export var numNodos = 3;
+class Paxos{
+    static numNodos = 3;
+    static red1;
+    static red2;
+        
+    static modoAuto;
+    static simPaused;
+    static hayParticion = false;
+    static fin = false;
+    static probFalloNodo = 0;
+    static probFalloRed = 0;
 
-export var red1;
-export var red2;
+    static maxTiempoRespuesta = 30000;
+    static minTiempoRespuesta = 10000;
 
-export var modoAuto = false;
-export var simPaused = false;
-export var hayParticion;
+    static velocidad = 1000;
 
-var fin = false;
+    static timerSim = new Timer(this.velocidad);
 
-export var probFalloNodo = 0;
-export var probFalloRed = 0;
+    static valoresProponer = ["Casa", "Coche", "Perro", "Insecto", "Lámpara"];
+    static nodos = [];
+    static timersInternos = [];
 
-export var maxTiempoRespuesta = 30000;
-export var minTiempoRespuesta = 10000;
+    static tasks = [];
 
-export var velocidad = 1000;
+    static quorum;
+    static rondaGlobal = -1;
 
-export const timerSim = new Timer(velocidad);
+    static mensajesPerdidos = 0;
+    static mensajesTotales = 0;
+    static numLideres = 0;
+    static numCaidas = 0;
 
-export var valoresProponer = ["Casa", "Coche", "Perro", "Insecto", "Lámpara"];
-export var nodos = [];
-export var timersInternos = [];
+    static mensajesEnEnvio = new Map();
 
-const tasks = [];
+    static inicio(auto){
+        $("#modalInicio").modal('hide');
+        this.modoAuto = auto;
+        this.quorum = Math.floor(this.numNodos/2)+1;
+        UI.creaPoligono(this.numNodos);
+        this.iniciaRed();
+        UI.reanudaSim();
+        
+        if(auto){
+            this.probFalloNodo = 12;
+            this.probFalloRed = 10;
+            UI.desactivaBotonesAuto();
+            UI.escribeLog(-1,null,null,"Uno o varios nodos se propondrán automáticamente.");
+        }   
+        else UI.escribeLog(-1,null,null,"Esperando una propuesta manual.");
 
-export var quorum;
-export var rondaGlobal = -1;
+        localStorage.setItem("numNodos", this.numNodos);
+        localStorage.setItem("velocidad", this.velocidad);
+        localStorage.setItem("modoAuto", this.modoAuto);
+    }
+  
+    static async iniciaRed(){
+        this.red1 = new Red();
+        this.red2 = new Red();
+        
 
-export var mensajesTotales = 0;
-export var mensajesPerdidos = 0;
-export var numLideres = 0;
-export var numCaidas = 0;
-
-
-//Guarda la info de los mensajes en envio.
-export var mensajesEnEnvio = new Map();
-
-
-//Inicio
-valoresGuardados();
-openModalInicio();
-
-////////////////////////////////
-////////// Funciones ///////////
-///////////////////////////////
-
-export function inicio(auto){
-
-    $("#modalInicio").modal('hide');
-    modoAuto = auto;
-    quorum = Math.floor(numNodos/2)+1;
-    creaPoligono(numNodos);
-    iniciaRed();
-    reanudaSim();
-    
-
-    if(auto){
-        desactivaBotonesAuto();
-        //red1.probParticion();
-        escribeLog(-1,null,null,"Uno o varios nodos se propondrán automáticamente.");
-    }   
-    else escribeLog(-1,null,null,"Esperando una propuesta manual.");
-
-    
-    localStorage.setItem("numNodos", numNodos);
-    localStorage.setItem("velocidad", velocidad);
-    localStorage.setItem("modoAuto", auto);
-}
-
-async function iniciaRed(){
-    red1 = new Red();
-    red2 = new Red();
-
-    setParticion(false);
-
-    for(let i=0; i<numNodos; i++){
-        var n = new Nodo(i, red1);
-        nodos.push(n);
-        tasks.push(red1);
-        red1.registrar_nodo(n);
+        for(let i=0; i < this.numNodos; i++){
+            var n = new Nodo(i, this.red1);
+            this.nodos.push(n);
+            this.tasks.push(this.red1);
+            this.red1.registrarNodo(n);
+        }
+        const x = await Promise.all(this.tasks.map((x)=>x.bucleSimulacion()));
     }
 
-    const x = await Promise.all(tasks.map((x)=>x.bucle_simulacion()));
-}
+    //Añade a la lista de temporizadores interno uno nuevo.
+    static addTimerInterno(timer){
+        this.timersInternos.push(timer);
+    }
 
-export function setNumNodos(num){
-    numNodos = num;
-}
+    static async wait(ms) {
+        return new Promise(resolve => {
+            setTimeout(resolve, ms);
+        });
+    }
 
-export function setSimPaused(bool){
-    simPaused = bool;
-}
-
-export function setParticion(b){
-    hayParticion = b;
-}
-
-export function setVelocidad(vel){
-    velocidad = vel;
-}
-
-export function setProbFalloRed(prob){
-    probFalloRed = prob;
-}
-
-export function setProbFalloNodo(prob){
-    probFalloNodo = prob;
-}
-
-export function setRonda(ronda){
-    rondaGlobal = ronda;
-}
-
-export function addMensajesTotales(){
-    mensajesTotales++;
-}
-
-export function addMensajesPerdidos(){
-    mensajesPerdidos++;
-}
-
-export function addNumLideres(){
-    numLideres++;
-}
-
-export function addNumCaidas(){
-    numCaidas++;
-}
-
-
-//Añade a la lista de temporizadores interno uno nuevo.
-export function addTimerInterno(timer){
-    timersInternos.push(timer);
-}
-
-export async function  wait(ms) {
-    return new Promise(resolve => {
-        setTimeout(resolve, ms);
-    });
-}
-
-
-export async function consensoFinal(){
+    static async consensoFinal(){
+        if(this.modoAuto){
+            let contadorConsenso = 0
+            for(let i=0; i<this.numNodos; i++){
+                if(this.nodos[i].consenso){
+                    contadorConsenso++
+                    console.log("Consensos: "+contadorConsenso)
+                }
+            }
     
-    if(modoAuto){
-        let contadorConsenso = 0
-        for(let i=0; i<numNodos; i++){
-            if(nodos[i].consenso){
-                contadorConsenso++
-
-                console.log("Consensos: "+contadorConsenso)
+            if(contadorConsenso == this.numNodos && !this.fin){
+                this.fin = true;  
+                UI.desactivaBotonesFin();   
+                UI.pausaSim();
+                UI.escribeLog(10);
+                UI.statsFinales();
+                UI.openModalEstadisticas();
             }
         }
-
-        if(contadorConsenso == numNodos && !fin){
-            fin = true;  
-            desactivaBotonesFin();   
-            pausaSim();
-            escribeLog(10);
-            statsFinales();
-            openModalEstadisticas();
-        }
+       
     }
-   
 }
 
 
+//Inicio de la simulación
+UI.valoresGuardados();
+UI.openModalInicio();
+
+export {Paxos}

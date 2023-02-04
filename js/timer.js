@@ -1,5 +1,5 @@
-//Temporizador general para la simulación.
-
+// Temporizador general para la simulación.
+// Permite ser pausado, reanudado y obtener la cadena de texto que define el tiempo actual.
 class Timer{
   constructor(velocidad) {
     this.velocidad = velocidad;
@@ -12,8 +12,8 @@ class Timer{
     this.timer;
   }
 
+  //Inicializa el temporizador
   startTime() {
-    
     this.secs++; 
     this.secsStr = this.secs; 
     this.minsStr = this.mins;
@@ -33,23 +33,23 @@ class Timer{
     document.getElementById('reloj').innerHTML = this.getTimeString();
   }
 
+  //Pausa del timer general.
   pausaTimer(){
     this.pausado = true;
     clearInterval(this.timer);  
-}
+  }
+
 
   reanudaTimer(){
     this.pausado = false; 
     this.timer = setInterval(function() {this.startTime()}.bind(this) ,this.velocidad);  
   }
 
+  //Genera la cadena de texto para mostrar.
   getTimeString(){
     return this.minsStr + ":" + this.secsStr;
   }
 
-
 }
-
-
 
 export {Timer}
