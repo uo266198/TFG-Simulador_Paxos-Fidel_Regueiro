@@ -1,6 +1,5 @@
 import{Paxos} from "./paxos.js";
 
-
 class UI{
     static svgNS = "http://www.w3.org/2000/svg"; 
     static nodoDist = 7;
@@ -34,23 +33,19 @@ class UI{
     
         circuloAnim.setAttribute("data-key", contIdentificaNodosAnim);
     
-    
         //Tooltip
         circuloAnim.setAttribute("data-toggle","tooltip")
         circuloAnim.setAttribute("data-placement","left")
         circuloAnim.setAttribute("data-html","true")
     
         //No podemos evitar el envioo de mensajes en modo Auto
-        if(!modoAuto)  circuloAnim.addEventListener("click", openModalMensajes);
+        if(!modoAuto)  circuloAnim.addEventListener("click", this.openModalMensajes);
        
         circuloAnim.setAttribute("title","<p> Mensaje: "+tipo+"</p><p> Origen: "+og+"</p><p> Destino: "+dest+"</p><p> Ronda: "+ronda+"</p><p> Valor: "+valor+"</p>");
-    
-        
     
         $(function () {
             $('[data-toggle="tooltip"]').tooltip()
         });
-    
     
         //El color cambia por el tipo de mensaje
         if(tipo == "PREPARACION" ){
@@ -79,8 +74,7 @@ class UI{
         var msgs = {origen: og, destino: dest,  mensaje: tipo, ronda: ronda, valor: valor, perdido: false}
     
         Paxos.mensajesEnEnvio.set(contIdentificaNodosAnim.toString(), msgs);
-    
-    
+
         contIdentificaNodosAnim++;
     
         return datos;
@@ -94,8 +88,6 @@ class UI{
             let posX = Math.cos(i * 2 * Math.PI / Paxos.numNodos + Math.PI/2 - Math.PI/Paxos.numNodos) * this.nodoDist;
             let posY = Math.sin(i * 2 * Math.PI / Paxos.numNodos + Math.PI/2 - Math.PI/Paxos.numNodos) * this.nodoDist;
 
-
-
             //Circulo de progreso 
             let circuloProgreso =  document.createElementNS(this.svgNS,"circle");
             circuloProgreso.setAttribute("id","progreso"+i);
@@ -106,7 +98,6 @@ class UI{
             circuloProgreso.setAttribute("stroke-width",(this.radio)/8);
     
             document.getElementById("svgFrame").appendChild(circuloProgreso);
-
 
             let circulo = document.createElementNS(this.svgNS,"circle");
             circulo.setAttribute("id","nodo"+i);
@@ -180,6 +171,7 @@ class UI{
         if(localStorage.getItem("modoAuto") == "false"){
             document.getElementById("flexRadioDefault1").setAttribute("checked","true");
         }
+
         else{
             document.getElementById("flexRadioDefault2").setAttribute("checked","true");       
         }
@@ -206,6 +198,7 @@ class UI{
                 }  
             } 
         }
+
         Paxos.simPaused = false;
         //setSimPaused(false);
         Paxos.timerSim.reanudaTimer();
@@ -217,42 +210,52 @@ class UI{
             $("#logText").append("<div style=\"color:yellow\">"+"["+Paxos.timerSim.getTimeString()+"] " + "<a style=\"color:green\"> " + "["+ og + "] " + "<a style=\"color:white\">" + 
             "recibe " +  "<a style=\"color:cyan\"> " +"["+ msg +"] " + "<a style=\"color:white\">" +" desde " + "<a style=\"color:green\"> " + "[" + dst + "]"+"</br>");
         }
+
         else if(tipoMsg == 1){
             $("#logText").append("<div style=\"color:yellow\">"+"["+Paxos.timerSim.getTimeString()+"] " + "<a style=\"color:green\"> " + "["+ og + "] " + "<a style=\"color:white\">" + 
             "ha llegado al quorum de aceptados. " +"</br>");
         }
+
         else if(tipoMsg == 2){
         $("#logText").append("<div style=\"color:yellow\">"+"["+Paxos.timerSim.getTimeString()+"] " + "<a style=\"color:green\"> " + "["+ og + "] " + "<a style=\"color:white\">" + 
             "quorum de mensajes, consenso. " + "</br>");
         }
+
         else if(tipoMsg == 3){
             $("#logText").append("<div style=\"color:yellow\">"+"["+Paxos.timerSim.getTimeString()+"] " + "<a style=\"color:green\"> " + "["+ og + "] " + "<a style=\"color:white\">" + 
             "se pierde el paquete con destino " + "<a style=\"color:green\"> " + "[" + dst + "]"+"</br>");
         }
+
         else if(tipoMsg == 4){
             $("#logText").append("<div style=\"color:yellow\">"+"["+Paxos.timerSim.getTimeString()+"] " + "<a style=\"color:green\"> " + "["+ og + "] " + "<a style=\"color:white\">" + 
             "está desactivado. " + "</br>");
         }
+
         else if(tipoMsg == 5){
             $("#logText").append("<div style=\"color:yellow\">"+"["+Paxos.timerSim.getTimeString()+"] " + "<a style=\"color:green\"> " + "["+ og + "] " + "<a style=\"color:white\">" + 
             "se ha vuelto a activar. " + "</br>");
         }
+
         else if(tipoMsg == 6){
             $("#logText").append("<div style=\"color:yellow\">"+"["+Paxos.timerSim.getTimeString()+"] " + "<a style=\"color:green\"> " + "["+ og + "] " + "<a style=\"color:white\">" + 
             "se ha vuelto a activar. " + "</br>");
         }
+
         else if(tipoMsg == 7){
             $("#logText").append("<div style=\"color:yellow\">"+"["+Paxos.timerSim.getTimeString()+"] " + "<a style=\"color:green\"> " + "["+ og + "] " + "<a style=\"color:white\">" + 
             "se propone como líder. " + "</br>");
         }
+
         else if(tipoMsg == 8){
             $("#logText").append("<div style=\"color:yellow\">"+"["+Paxos.timerSim.getTimeString()+"] " + "<a style=\"color:green\"> " + "["+ og + "] " + "<a style=\"color:white\">" + 
             "se propone como líder al expirar el temporizador interno. " + "</br>");
         }
+
         else if(tipoMsg == 9){
             $("#logText").append("<div style=\"color:yellow\">"+"["+Paxos.timerSim.getTimeString()+"] " + "<a style=\"color:green\"> " + "["+ og + "] " + "<a style=\"color:white\">" + 
             "vuelve a proponerse al expirar el temporizador interno. " + "</br>");
         }
+
         else if(tipoMsg == 10){
             $("#logText").append("<div style=\"color:yellow\">"+"["+Paxos.timerSim.getTimeString()+"] " + "<a style=\"color:green\"> " +"TODOS LOS NODOS HAN LLEGADO AL CONSENSO" + "<a style=\"color:white\">" + 
             "</br>");
@@ -262,6 +265,7 @@ class UI{
             $("#logText").append("<div style=\"color:yellow\">"+"["+Paxos.timerSim.getTimeString()+"] " + "<a style=\"color:green\"> " + "["+ og + "] " + "<a style=\"color:white\">" + 
             "se pierde el paquete con destino " + "<a style=\"color:green\"> " + "[" + dst + "]"+" debido a la partición de red.</br>");
         }
+
         else if(tipoMsg == -1){
             $("#logText").append(msg+"</br>");
         }
@@ -307,7 +311,6 @@ class UI{
 
         circuloAnim.setAttribute("data-key", this.contIdentificaNodosAnim);
 
-
         //Tooltip
         circuloAnim.setAttribute("data-toggle","tooltip")
         circuloAnim.setAttribute("data-placement","left")
@@ -318,12 +321,9 @@ class UI{
     
         circuloAnim.setAttribute("title","<p> Mensaje: "+tipo+"</p><p> Origen: "+og+"</p><p> Destino: "+dest+"</p><p> Ronda: "+ronda+"</p><p> Valor: "+valor+"</p>");
 
-        
-
         $(function () {
             $('[data-toggle="tooltip"]').tooltip()
         });
-
 
         //El color cambia por el tipo de mensaje
         if(tipo == "PREPARACION" ){
@@ -421,7 +421,6 @@ class UI{
         this.escribeLog(4, id)
     }
 
-    
     static activarNodo(id){
         //Cambia el color
         if(Paxos.nodos[id].consenso) $("#nodo"+id).css("fill","green");
@@ -499,13 +498,13 @@ class UI{
         //Comprobar todos los nodos 
         let iterator = Paxos.mensajesEnEnvio.keys();
         for(let key of iterator){
-            
             if(!Paxos.red1.destinoPosible(Paxos.mensajesEnEnvio.get(key).origen, Paxos.mensajesEnEnvio.get(key).destino) || !Paxos.red1.destinoPosible(mensajesEnEnvio.get(key).origen, Paxos.mensajesEnEnvio.get(key).destino)){
                 document.getElementById("nodoAnim"+key).setAttribute("fill","red");
             }
         }          
     }
 
+    // Desactiva el uso de botones al finalizar en el modo automático
     static desactivaBotonesFin(){
         $("#btnPartir").attr('disabled', 'disabled');
         $("#btnProponer").attr('disabled', 'disabled');
@@ -515,6 +514,7 @@ class UI{
         $("#btnSpeed").attr('disabled', 'disabled');
     }
 
+    // Muestra  el modal con las estadísticas finales
     static statsFinales(){
         $("#finTiempo").append("Tiempo final de la simulación: <b>"+ Paxos.timerSim.getTimeString()+"</b>");
         $("#finNumRondas").append("Última ronda: <b>"+ Paxos.rondaGlobal+"</b>");
@@ -527,6 +527,7 @@ class UI{
         $("#finNumLideres").append("Número de líderes propuestos: <b>"+ Paxos.numLideres+"</b>");
     }
 
+    // Reanuda la simulación.
     static reanudaSim(){
         $("#btnPlay").attr('class', "btn btn-primary btn-sm ");
         $("#btnPlay").children('svg').children('path').attr('d', "M5.5 3.5A1.5 1.5 0 0 1 7 5v6a1.5 1.5 0 0 1-3 0V5a1.5 1.5 0 0 1 1.5-1.5zm5 0A1.5 1.5 0 0 1 12 5v6a1.5 1.5 0 0 1-3 0V5a1.5 1.5 0 0 1 1.5-1.5z");
@@ -548,6 +549,7 @@ class UI{
         Paxos.timerSim.reanudaTimer();
     }
     
+    // Pausa la simulación.
     static pausaSim(){
         $("#btnPlay").attr('class', "btn btn-danger btn-sm ");
         $("#btnPlay").children('svg').children('path').attr('d', "m11.596 8.697-6.363 3.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01 1.233-.696l6.363 3.692a.802.802 0 0 1 0 1.393z");
@@ -576,15 +578,32 @@ class UI{
         }
     }
 
+    //Abre el modal de estadísticas.
     static openModalEstadisticas(){
         $("#modalEstadisticas").modal('show');
     }
+
+    //Abre el modal de mensajes.
+    static openModalMensajes(e){
+        UI.pausaSim();
+        idMsgActual = this.dataset.key;
+        //Esto no debería ser necesario, pero lo es PARA ESTE MODAL EN CONCRETO y no estoy seguro de por qué;
+        $("#modalMensajes").appendTo("body")
+        $("#modalMensajes").modal('show');
+
+        mensajesEnEnvio.get(idMsgActual.toString());
+
+        let og      = mensajesEnEnvio.get(idMsgActual.toString()).origen;
+        let dst     = mensajesEnEnvio.get(idMsgActual.toString()).destino;
+        let msg     = mensajesEnEnvio.get(idMsgActual.toString()).mensaje;
+        let valor   = mensajesEnEnvio.get(idMsgActual.toString()).valor;
+        
+        $("#pOrigen").text("Origen: "+og);
+        $("#pDestino").text("Destino: "+dst);
+        $("#pMensaje").text("Mensaje: "+msg);
+        $("#pValor").text("Valor (puede ser null): "+valor);
+    }
 }
-
-
-
-
-
 
 
 
@@ -601,412 +620,3 @@ function tooltipNodos(e){
     let textoMouseOver = "<p>Nodo: "+UI.actual+"</p><p>Estado actual: "+Paxos.nodos[UI.actual].estado+"</p><p>Mayor ronda recibida: "+textRonda+"</p><p> Valor aceptado: "+textValor+"</p>"
     document.getElementById("nodo"+UI.actual).setAttribute("data-original-title", textoMouseOver);
 }
-
-function openModalInfo(e){
-    UI.actual = this.dataset.key;
-    $("#modalTitle").text("Propón un valor desde el nodo " + this.dataset.key);
-    $("#modalInfo").modal('show');
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/*var svgNS = "http://www.w3.org/2000/svg"; 
- 
-var nodoDist = 7;
-var radio = 2;
-var colorNodos = "gray";
-var actual;
-var idMsgActual;
-
-export var contIdentificaNodosAnim = 0;
- 
-var timerCaidaEnUso = false;*/
-
-
-// Tipo de mensajes
-function escribeLog(tipoMsg, og, dst, msg){
-    if(tipoMsg == 0){
-        $("#logText").append("<div style=\"color:yellow\">"+"["+Paxos.timerSim.getTimeString()+"] " + "<a style=\"color:green\"> " + "["+ og + "] " + "<a style=\"color:white\">" + 
-        "recibe " +  "<a style=\"color:cyan\"> " +"["+ msg +"] " + "<a style=\"color:white\">" +" desde " + "<a style=\"color:green\"> " + "[" + dst + "]"+"</br>");
-    }
-    else if(tipoMsg == 1){
-        $("#logText").append("<div style=\"color:yellow\">"+"["+timerSim.getTimeString()+"] " + "<a style=\"color:green\"> " + "["+ og + "] " + "<a style=\"color:white\">" + 
-        "ha llegado al quorum de aceptados. " +"</br>");
-    }
-    else if(tipoMsg == 2){
-      $("#logText").append("<div style=\"color:yellow\">"+"["+timerSim.getTimeString()+"] " + "<a style=\"color:green\"> " + "["+ og + "] " + "<a style=\"color:white\">" + 
-        "quorum de mensajes, consenso. " + "</br>");
-    }
-    else if(tipoMsg == 3){
-        $("#logText").append("<div style=\"color:yellow\">"+"["+timerSim.getTimeString()+"] " + "<a style=\"color:green\"> " + "["+ og + "] " + "<a style=\"color:white\">" + 
-        "se pierde el paquete con destino " + "<a style=\"color:green\"> " + "[" + dst + "]"+"</br>");
-    }
-    else if(tipoMsg == 4){
-        $("#logText").append("<div style=\"color:yellow\">"+"["+timerSim.getTimeString()+"] " + "<a style=\"color:green\"> " + "["+ og + "] " + "<a style=\"color:white\">" + 
-        "está desactivado. " + "</br>");
-    }
-    else if(tipoMsg == 5){
-        $("#logText").append("<div style=\"color:yellow\">"+"["+timerSim.getTimeString()+"] " + "<a style=\"color:green\"> " + "["+ og + "] " + "<a style=\"color:white\">" + 
-        "se ha vuelto a activar. " + "</br>");
-    }
-    else if(tipoMsg == 6){
-        $("#logText").append("<div style=\"color:yellow\">"+"["+timerSim.getTimeString()+"] " + "<a style=\"color:green\"> " + "["+ og + "] " + "<a style=\"color:white\">" + 
-        "se ha vuelto a activar. " + "</br>");
-    }
-    else if(tipoMsg == 7){
-        $("#logText").append("<div style=\"color:yellow\">"+"["+timerSim.getTimeString()+"] " + "<a style=\"color:green\"> " + "["+ og + "] " + "<a style=\"color:white\">" + 
-        "se propone como líder. " + "</br>");
-    }
-    else if(tipoMsg == 8){
-        $("#logText").append("<div style=\"color:yellow\">"+"["+timerSim.getTimeString()+"] " + "<a style=\"color:green\"> " + "["+ og + "] " + "<a style=\"color:white\">" + 
-        "se propone como líder al expirar el temporizador interno. " + "</br>");
-    }
-    else if(tipoMsg == 9){
-        $("#logText").append("<div style=\"color:yellow\">"+"["+timerSim.getTimeString()+"] " + "<a style=\"color:green\"> " + "["+ og + "] " + "<a style=\"color:white\">" + 
-        "vuelve a proponerse al expirar el temporizador interno. " + "</br>");
-    }
-    else if(tipoMsg == 10){
-        $("#logText").append("<div style=\"color:yellow\">"+"["+timerSim.getTimeString()+"] " + "<a style=\"color:green\"> " +"TODOS LOS NODOS HAN LLEGADO AL CONSENSO" + "<a style=\"color:white\">" + 
-        "</br>");
-    }
-
-    else if(tipoMsg == 11){
-        $("#logText").append("<div style=\"color:yellow\">"+"["+timerSim.getTimeString()+"] " + "<a style=\"color:green\"> " + "["+ og + "] " + "<a style=\"color:white\">" + 
-        "se pierde el paquete con destino " + "<a style=\"color:green\"> " + "[" + dst + "]"+" debido a la partición de red.</br>");
-      }
-    else if(tipoMsg == -1){
-        $("#logText").append(msg+"</br>");
-    }
-}
-
-
-// Crea el polígono regular que forman los distintos nodos según el número de estos y por lo tanto la posición de cada nodo.
-// También crea el círculo exterior que representa el temporizador interno de recepción de mensajes.
-function creaPoligono(){
-    for (let i = 0; i <numNodos; i++){
-        let posX = Math.cos(i * 2 * Math.PI / numNodos + Math.PI/2 - Math.PI/numNodos)*nodoDist;
-        let posY = Math.sin(i * 2 * Math.PI / numNodos + Math.PI/2 - Math.PI/numNodos)*nodoDist;
-
-        //Circulo de progreso 
-        let circuloProgreso =  document.createElementNS(svgNS,"circle");
-        circuloProgreso.setAttribute("id","progreso"+i);
-        circuloProgreso.setAttribute("class","circuloProgreso");
-        circuloProgreso.setAttribute("cx",posX);
-        circuloProgreso.setAttribute("cy",posY);
-        circuloProgreso.setAttribute("r",radio+(radio/15));
-        circuloProgreso.setAttribute("stroke-width",(radio)/8);
- 
-        document.getElementById("svgFrame").appendChild(circuloProgreso);
-
-        let circulo = document.createElementNS(svgNS,"circle");
-        circulo.setAttribute("id","nodo"+i);
-        circulo.setAttribute("cx",posX);
-        circulo.setAttribute("cy",posY);
-        circulo.setAttribute("r",radio);
-        circulo.setAttribute("fill",colorNodos);
-
-        // Tooltip
-        circulo.setAttribute("data-toggle","tooltip");
-        circulo.setAttribute("data-placement","top");
-        circulo.setAttribute("data-html","true");
-        circulo.setAttribute("title","Nodo "+i);
-
-        $(function () {
-            $('[data-toggle="tooltip"]').tooltip()
-        });
-    
-        //Añadimos un valor que distingue a cada nodo
-        circulo.setAttribute("data-key", i);
-        if(!modoAuto) circulo.addEventListener("click", openModalInfo);
-        circulo.addEventListener("mouseover", tooltipNodos);
-        document.getElementById("svgFrame").appendChild(circulo);
-
-        dibujaNombres(i, posX, posY); 
-    }   
-}
-
-
-
-
-// Dibuja los nombres de cada nodo
-function dibujaNombres(id, posX, posY){
-        var textoSVG = document.createElementNS(svgNS,"text"); 
-        textoSVG.setAttributeNS(null,"id","textoSVG"+id);
-        textoSVG.setAttributeNS(null,"x", posX);
-        textoSVG.setAttributeNS(null,"y", posY - 0.9);
-        textoSVG.setAttributeNS(null,"font-size",0.5);
-        textoSVG.setAttributeNS(null,"text-anchor", "middle");
-        textoSVG.setAttributeNS(null,"pointer-events","none");
-
-        var texto = document.createTextNode("NODO "+id);
-        
-        textoSVG.appendChild(texto);
-        document.getElementById("svgFrame").appendChild(textoSVG);   
-}
-
-
-
-
-
-
-
-//Pone por defecto los últimos valores seleccionados
-function valoresGuardados(){
-
-    if(localStorage.getItem("numNodos") == null){ $("#dropDownValue").text("3"); }
-    else { $("#dropDownValue").text(localStorage.getItem("numNodos")); }
-   
-    if(localStorage.getItem("velocidad") == null){ timerSim.velocidad = 1000; }
-    else { timerSim.velocidad = localStorage.getItem("velocidad")}
-
-    if(timerSim.velocidad == 1000){
-        $("#btnSpeedText").text("x1");
-        setVelocidad(1000);
-    }
-    else if(timerSim.velocidad == 500){
-        $("#btnSpeedText").text("x2");
-        setVelocidad(500);
-    }
-    else if(timerSim.velocidad == 250){
-        $("#btnSpeedText").text("x3");
-        setVelocidad(250);
-    }
-
-    if(localStorage.getItem("modoAuto") == "false"){
-        document.getElementById("flexRadioDefault1").setAttribute("checked","true");
-    }
-    else{
-        document.getElementById("flexRadioDefault2").setAttribute("checked","true");       
-    }
-}
-
-
-//muestra la información del nodo
-function openModalInicio(){
-    $("#modalInicio").modal('show');
-}
-
-function openModalMensajes(e){
-
-    UI.pausaSim();
-    idMsgActual = this.dataset.key;
-    //Esto no debería ser necesario, pero lo es PARA ESTE MODAL EN CONCRETO y no estoy seguro de por qué;
-    $("#modalMensajes").appendTo("body")
-    $("#modalMensajes").modal('show');
-
-    mensajesEnEnvio.get(idMsgActual.toString());
-
-    let og      = mensajesEnEnvio.get(idMsgActual.toString()).origen;
-    let dst     = mensajesEnEnvio.get(idMsgActual.toString()).destino;
-    let msg     = mensajesEnEnvio.get(idMsgActual.toString()).mensaje;
-    let valor   = mensajesEnEnvio.get(idMsgActual.toString()).valor;
-    
-    $("#pOrigen").text("Origen: "+og);
-    $("#pDestino").text("Destino: "+dst);
-    $("#pMensaje").text("Mensaje: "+msg);
-    $("#pValor").text("Valor (puede ser null): "+valor);
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/////////////////////////////////
-////////// MANEJADORES //////////
-/////////////////////////////////
-
-$("#btnSpeed").click(function(){
-    if(Paxos.timerSim.velocidad == 1000) {
-        $("#btnSpeedText").text("x2");
-        Paxos.velocidad = 500;
-        //setVelocidad(500);
-        Paxos.timerSim.velocidad = 500;
-    }
-    else if (Paxos.timerSim.velocidad == 500){
-        $("#btnSpeedText").text("x3");
-        //setVelocidad(250);
-        Paxos.velocidad = 250;
-        Paxos.timerSim.velocidad = 250;
-
-       
-    }
-    else {
-        $("#btnSpeedText").text("x1");
-        s//etVelocidad(1000);
-        Paxos.velocidad = 1000;
-        Paxos.timerSim.velocidad = 1000;
-    }
-
-    //pausaSim();
-    //reanudaSim();
-});
-
-//Para o continua la simulación
-$("#btnPlay").click(function(){ 
-    if(Paxos.simPaused){
-        UI.reanudaSim();
-    }  
-    else{
-        UI.pausaSim();
-    }
-});
-
-$("#btnReset").click(function(){ 
-    location.reload();
-});
-
-//Particion
-$("#btnPartir").click(function(){ 
-    if(Paxos.hayParticion) UI.eliminaParticion();
-    else UI.generaParticion();
-});
-
-$("#btnProponer").click(function(){ 
-    var propuesta = $("#textPropuesta").val();
-    var nuevaRonda = $("#textRonda").val();
-    if(propuesta !="" && nuevaRonda !=""){
-        UI.escribeLog("Nodo "+UI.actual+" se prepara para proponer el valor:  \""+ propuesta+ " "+nuevaRonda+"\"");  
-        Paxos.nodos[UI.actual].proponer(propuesta,nuevaRonda);
-    }  
-});
-
-
-$("#btnPerderMsg").click(function(){ 
-    document.getElementById("nodoAnim"+idMsgActual).setAttribute("fill","red");
-    mensajesEnEnvio.get(idMsgActual.toString()).perdido = true;
-});
-
-
-
-$("#btnInfo").click(function(){
-    UI.pausaSim();
-    $("#modalManual").modal('show');
-});
-
-$("#btnAcepta").click(function(){  
-    let auto = $("#flexRadioDefault2").is(':checked');
-    Paxos.numNodos = $('.status').text();
-    //setNumNodos($('.status').text());
-    Paxos.timerSim.startTime();
-    Paxos.inicio(auto);
-    //inicio(auto);
-});
-
-$("#btnVolverFin").click(function(){  
-    $("#modalEstadisticas").modal('hide');
-});
-
-$("#btnResetFin").click(function(){  
-    location.reload();
-});
-
-$("#btnManual").click(function(){  
-    $("#modalInicio").modal('hide');
-    $("#modalManual").modal('show');
-});
-
-$("#btnVolver").click(function(){  
-    $("#modalManual").modal('hide');
-    if(nodos[0] == undefined){
-        $("#modalInicio").modal('show');
-        
-    } 
-});
-
-$('.dropdown-inverse li > a').click(function(e){
-    $('.status').text(this.innerHTML);
-});
-
-$(document).on('input', '#sliderCaida', function() {
-    Paxos.probFalloNodo = $(this).val();
-    if(!this.timerCaidaEnUso){
-        if(Paxos.probFalloNodo > 0 && !Paxos.modoAuto){
-            for(let i=0; i<Paxos.nodos.length; i++){
-                Paxos.nodos[i].tiempoCaidaNodo();
-            } 
-        }
-        this.timerCaidaEnUso = true;
-    }
-
-    $('#probCaida').html( "Probabilidad de fallo de un nodo: " + $(this).val() + "%" );
-});
-
-$(document).on('input', '#sliderPerdida', function() {
-    Paxos.probFalloRed=  $(this).val()
-    $('#probPerdida').html( "Probabilidad de pérdida de paquetes: " + $(this).val() + "%" );
-});
-
-$('#btnSuspender').click(function(e){
-    if(Paxos.nodos[UI.actual].pausado){
-        UI.activarNodo(UI.actual);
-        //console.log("Nodo "+UI.actual+" activado");
-        $('#btnSuspender').text("Suspender nodo");
-        $('#btnSuspender').removeClass('btn-primary');
-        $('#btnSuspender').addClass('btn-danger');
-       
-    }
-
-    else{
-        UI.desactivarNodo(UI.actual);
-        $('#btnSuspender').text("Reactivar");
-        $('#btnSuspender').removeClass('btn-danger');
-        $('#btnSuspender').addClass('btn-primary');
-    }
-   
-});
-
-export{UI}
