@@ -620,3 +620,5 @@ function tooltipNodos(e){
     let textoMouseOver = "<p>Nodo: "+UI.actual+"</p><p>Estado actual: "+Paxos.nodos[UI.actual].estado+"</p><p>Mayor ronda recibida: "+textRonda+"</p><p> Valor aceptado: "+textValor+"</p>"
     document.getElementById("nodo"+UI.actual).setAttribute("data-original-title", textoMouseOver);
 }
+
+export  {UI}
