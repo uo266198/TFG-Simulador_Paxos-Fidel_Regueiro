@@ -118,8 +118,8 @@ class UI{
         
             //Añadimos un valor que distingue a cada nodo
             circulo.setAttribute("data-key", i);
-            if(!Paxos.modoAuto) circulo.addEventListener("click", openModalInfo);
-            circulo.addEventListener("mouseover", tooltipNodos);
+            if(!Paxos.modoAuto) circulo.addEventListener("click", this.openModalInfo);
+            circulo.addEventListener("mouseover", this.tooltipNodos);
             document.getElementById("svgFrame").appendChild(circulo);
 
             this.dibujaNombres(i, posX, posY); 
@@ -317,7 +317,7 @@ class UI{
         circuloAnim.setAttribute("data-html","true")
 
         //No podemos evitar el envioo de mensajes en modo Auto
-        if(!Paxos.modoAuto)  circuloAnim.addEventListener("click", openModalMensajes);
+        if(!Paxos.modoAuto)  circuloAnim.addEventListener("click", this.openModalMensajes);
     
         circuloAnim.setAttribute("title","<p> Mensaje: "+tipo+"</p><p> Origen: "+og+"</p><p> Destino: "+dest+"</p><p> Ronda: "+ronda+"</p><p> Valor: "+valor+"</p>");
 
@@ -604,32 +604,22 @@ class UI{
         $("#pValor").text("Valor (puede ser null): "+valor);
     }
 
-
-
-}
-
-
-
-////NO PUEDE SER ESTATICO
-
-function tooltipNodos(e){
-    UI.actual = this.dataset.key;
-
-    let textRonda = Paxos.nodos[UI.actual].ronda;
-    let textValor = Paxos.nodos[UI.actual].valorPropuesto;
-
-    if(Paxos.nodos[UI.actual].ronda < 0) textRonda = "ninguna ronda recibida"
-    if(textValor == undefined) textValor = "ninguno"
-    let textoMouseOver = "<p>Nodo: "+UI.actual+"</p><p>Estado actual: "+Paxos.nodos[UI.actual].estado+"</p><p>Mayor ronda recibida: "+textRonda+"</p><p> Valor aceptado: "+textValor+"</p>"
-    document.getElementById("nodo"+UI.actual).setAttribute("data-original-title", textoMouseOver);
-}
-
-
-function openModalInfo(e){
+    static tooltipNodos(e){
+        UI.actual = this.dataset.key;
     
-    UI.actual = this.dataset.key;
-    $("#modalInfo").modal('show');
+        let textRonda = Paxos.nodos[UI.actual].ronda;
+        let textValor = Paxos.nodos[UI.actual].valorPropuesto;
+    
+        if(Paxos.nodos[UI.actual].ronda < 0) textRonda = "ninguna ronda recibida"
+        if(textValor == undefined) textValor = "ninguno"
+        let textoMouseOver = "<p>Nodo: "+UI.actual+"</p><p>Estado actual: "+Paxos.nodos[UI.actual].estado+"</p><p>Mayor ronda recibida: "+textRonda+"</p><p> Valor aceptado: "+textValor+"</p>"
+        document.getElementById("nodo"+UI.actual).setAttribute("data-original-title", textoMouseOver);
+    }
+
+    static openModalInfo(e){
+        UI.actual = this.dataset.key;
+        $("#modalInfo").modal('show');
+    }
+    
 }
-
-
 export  {UI}
