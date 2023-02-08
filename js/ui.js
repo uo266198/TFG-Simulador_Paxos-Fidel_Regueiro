@@ -591,12 +591,12 @@ class UI{
         $("#modalMensajes").appendTo("body")
         $("#modalMensajes").modal('show');
 
-        mensajesEnEnvio.get(idMsgActual.toString());
+        Paxos.mensajesEnEnvio.get(UI.idMsgActual.toString());
 
-        let og      = mensajesEnEnvio.get(UI.idMsgActual.toString()).origen;
-        let dst     = mensajesEnEnvio.get(UI.idMsgActual.toString()).destino;
-        let msg     = mensajesEnEnvio.get(UI.idMsgActual.toString()).mensaje;
-        let valor   = mensajesEnEnvio.get(UI.idMsgActual.toString()).valor;
+        let og      =  Paxos.mensajesEnEnvio.get(UI.idMsgActual.toString()).origen;
+        let dst     =  Paxos.mensajesEnEnvio.get(UI.idMsgActual.toString()).destino;
+        let msg     =  Paxos.mensajesEnEnvio.get(UI.idMsgActual.toString()).mensaje;
+        let valor   =  Paxos.mensajesEnEnvio.get(UI.idMsgActual.toString()).valor;
         
         $("#pOrigen").text("Origen: "+og);
         $("#pDestino").text("Destino: "+dst);

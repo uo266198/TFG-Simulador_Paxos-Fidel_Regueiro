@@ -56,8 +56,8 @@ $("#btnProponer").click(function(){
 
 
 $("#btnPerderMsg").click(function(){ 
-    document.getElementById("nodoAnim"+idMsgActual).setAttribute("fill","red");
-    mensajesEnEnvio.get(idMsgActual.toString()).perdido = true;
+    document.getElementById("nodoAnim"+UI.idMsgActual).setAttribute("fill","red");
+    Paxos.mensajesEnEnvio.get(UI.idMsgActual.toString()).perdido = true;
 });
 
 $("#btnInfo").click(function(){
@@ -87,7 +87,7 @@ $("#btnManual").click(function(){
 
 $("#btnVolver").click(function(){  
     $("#modalManual").modal('hide');
-    if(nodos[0] == undefined){
+    if(Paxos.nodos[0] == undefined){
         $("#modalInicio").modal('show'); 
     } 
 });
@@ -111,7 +111,7 @@ $(document).on('input', '#sliderCaida', function() {
 });
 
 $(document).on('input', '#sliderPerdida', function() {
-    Paxos.probFalloRed=  $(this).val()
+    Paxos.probFalloRed = $(this).val()
     $('#probPerdida').html( "Probabilidad de pérdida de paquetes: " + $(this).val() + "%" );
 });
 
