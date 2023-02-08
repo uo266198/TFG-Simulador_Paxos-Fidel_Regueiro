@@ -586,17 +586,17 @@ class UI{
     //Abre el modal de mensajes.
     static openModalMensajes(e){
         UI.pausaSim();
-        idMsgActual = this.dataset.key;
+        UI.idMsgActual = this.dataset.key;
         //Esto no debería ser necesario, pero lo es PARA ESTE MODAL EN CONCRETO y no estoy seguro de por qué;
         $("#modalMensajes").appendTo("body")
         $("#modalMensajes").modal('show');
 
         mensajesEnEnvio.get(idMsgActual.toString());
 
-        let og      = mensajesEnEnvio.get(idMsgActual.toString()).origen;
-        let dst     = mensajesEnEnvio.get(idMsgActual.toString()).destino;
-        let msg     = mensajesEnEnvio.get(idMsgActual.toString()).mensaje;
-        let valor   = mensajesEnEnvio.get(idMsgActual.toString()).valor;
+        let og      = mensajesEnEnvio.get(UI.idMsgActual.toString()).origen;
+        let dst     = mensajesEnEnvio.get(UI.idMsgActual.toString()).destino;
+        let msg     = mensajesEnEnvio.get(UI.idMsgActual.toString()).mensaje;
+        let valor   = mensajesEnEnvio.get(UI.idMsgActual.toString()).valor;
         
         $("#pOrigen").text("Origen: "+og);
         $("#pDestino").text("Destino: "+dst);
@@ -620,6 +620,6 @@ class UI{
         UI.actual = this.dataset.key;
         $("#modalInfo").modal('show');
     }
-    
+
 }
 export  {UI}
