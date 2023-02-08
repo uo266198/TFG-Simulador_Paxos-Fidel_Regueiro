@@ -603,6 +603,9 @@ class UI{
         $("#pMensaje").text("Mensaje: "+msg);
         $("#pValor").text("Valor (puede ser null): "+valor);
     }
+
+
+
 }
 
 
@@ -620,5 +623,13 @@ function tooltipNodos(e){
     let textoMouseOver = "<p>Nodo: "+UI.actual+"</p><p>Estado actual: "+Paxos.nodos[UI.actual].estado+"</p><p>Mayor ronda recibida: "+textRonda+"</p><p> Valor aceptado: "+textValor+"</p>"
     document.getElementById("nodo"+UI.actual).setAttribute("data-original-title", textoMouseOver);
 }
+
+
+function openModalInfo(e){
+    
+    UI.actual = this.dataset.key;
+    $("#modalInfo").modal('show');
+}
+
 
 export  {UI}

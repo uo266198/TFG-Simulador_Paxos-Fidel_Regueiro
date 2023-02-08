@@ -9,12 +9,10 @@ $("#btnSpeed").click(function(){
     if(Paxos.timerSim.velocidad == 1000) {
         $("#btnSpeedText").text("x2");
         Paxos.velocidad = 500;
-        //setVelocidad(500);
         Paxos.timerSim.velocidad = 500;
     }
     else if (Paxos.timerSim.velocidad == 500){
         $("#btnSpeedText").text("x3");
-        //setVelocidad(250);
         Paxos.velocidad = 250;
         Paxos.timerSim.velocidad = 250;
 
@@ -22,7 +20,6 @@ $("#btnSpeed").click(function(){
     }
     else {
         $("#btnSpeedText").text("x1");
-        s//etVelocidad(1000);
         Paxos.velocidad = 1000;
         Paxos.timerSim.velocidad = 1000;
     }
