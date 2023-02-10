@@ -118,7 +118,6 @@ $(document).on('input', '#sliderPerdida', function() {
 $('#btnSuspender').click(function(e){
     if(Paxos.nodos[UI.actual].pausado){
         UI.activarNodo(UI.actual);
-        //console.log("Nodo "+UI.actual+" activado");
         $('#btnSuspender').text("Suspender nodo");
         $('#btnSuspender').removeClass('btn-primary');
         $('#btnSuspender').addClass('btn-danger');

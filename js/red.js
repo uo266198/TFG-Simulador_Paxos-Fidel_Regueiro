@@ -1,9 +1,6 @@
 import {Channel}  from "../channels/channels.js";
 import {UI} from "./ui.js";
-//import {escribeLog } from "./ui.js";
-//import {creaCirculoAnim, generaParticion} from "./ui.js";
 import {Paxos}  from "./paxos.js"
-//import {velocidad, hayParticion, simPaused, probFalloRed, wait, addMensajesPerdidos, addMensajesTotales, addTimerInterno, modoAuto, mensajesEnEnvio} from "./paxos.js"
 import {TimerInterno} from "./timerInterno.js"
 
 
@@ -80,7 +77,6 @@ class Red {
     /*async probParticion(){
         //Tiempo aleatorio
         let vrand =  velocidad* (Math.floor(Math.random() * 30)+20);
-        console.log("Probabilidad de particion timer: "+ vrand);
         let resultado = await this.timerParticion.start(vrand);
         
         if(resultado == 0){

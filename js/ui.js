@@ -266,6 +266,11 @@ class UI{
             "se pierde el paquete con destino " + "<a style=\"color:green\"> " + "[" + dst + "]"+" debido a la partición de red.</br>");
         }
 
+        else if(tipoMsg == 12){
+            $("#logText").append("<div style=\"color:yellow\">"+"["+Paxos.timerSim.getTimeString()+"] " + "<a style=\"color:green\"> " + "["+ og + "] " + "<a style=\"color:white\">" + 
+            "es elegido líder." + "<a style=\"color:green\"> " +"</br>");
+        }
+
         else if(tipoMsg == -1){
             $("#logText").append(msg+"</br>");
         }
@@ -280,12 +285,13 @@ class UI{
     static setProponente(id){
         if(!Paxos.modoAuto) this.escribeLog(7,id);
         Paxos.nodos[id].estado = "PROPONENTE";
+        $("#nodo"+id).css("fill","Yellow");
         this.quitaTextoLider(id);
     }
     
     //Quita el texto  del lider
     static quitaTextoLider(id){
-        if(document.getElementById("id","newTextoSVG"+id) != null)  document.getElementById("id","newTextoSVG"+id).remove;
+        if(document.getElementById("newTextoSVG"+id) != null)  document.getElementById("newTextoSVG"+id).remove();
     }
 
     //Crea el circulo que representa el envío de datos
@@ -365,7 +371,7 @@ class UI{
     }
 
     static setLider(id, ronda){
-        if(!Paxos.modoAuto) this.escribeLog(7,id);
+        if(!Paxos.modoAuto) this.escribeLog(12,id);
         Paxos.nodos[id].estado = "LIDER";
         this.muestraTextoLider(id, ronda);
     }
@@ -512,6 +518,17 @@ class UI{
         //document.getElementById("sliderCaida").disabled = true;
         $("#btnPlay").attr('disabled', 'disabled');
         $("#btnSpeed").attr('disabled', 'disabled');
+
+        for(let i = 0 ; i < Paxos.numNodos; i++){
+            document.getElementById("progreso"+i).remove(); 
+            
+        }
+
+        let iterator = Paxos.mensajesEnEnvio.keys();
+        for(let key of iterator){
+            if(  document.getElementById("nodoAnim"+key) != null) document.getElementById("nodoAnim"+key).remove();
+        }
+            
     }
 
     // Muestra  el modal con las estadísticas finales
@@ -573,7 +590,7 @@ class UI{
     
         for(let i=0; i<Paxos.nodos.length; i++){
             if(typeof Paxos.nodos[i].waitAnim !== "undefined"){
-                let cirPros =  document.getElementById("progreso"+i).getAttribute("style")  
+                if(document.getElementById("progreso"+i) != null){ let cirPros =  document.getElementById("progreso"+i).getAttribute("style")  ;}
             } 
         }
     }
@@ -587,7 +604,6 @@ class UI{
     static openModalMensajes(e){
         UI.pausaSim();
         UI.idMsgActual = this.dataset.key;
-        //Esto no debería ser necesario, pero lo es PARA ESTE MODAL EN CONCRETO y no estoy seguro de por qué;
         $("#modalMensajes").appendTo("body")
         $("#modalMensajes").modal('show');
 

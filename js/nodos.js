@@ -72,35 +72,25 @@ class Nodo {
                 //Estado 1: ACEPTADOR: ha de recibir un mensaje de preparación. Envía promesa. Si ya se ha comprometido, recibe el valor y envía el OK (ACEPTACIÓN) de vuelta al líder.
                 if(this.estado == "ACEPTADOR"){
                     if(msg[0] == "PREPARACION"){            // Mensaje de compromiso con un líder
-                        if(msg[1] > this.ronda){            // Recibo una ronda mayor que la última que he recibido.
+                        if(msg[1] > this.ronda){                // Recibo una ronda mayor que la última que he recibido.
                             UI.setComprometido(this.id);          // Me he comprometido a un líder.
                             this.ronda = msg[1];
-                            await this.enviar(["PROMESA",this.ronda,null], [orig], this.id);      // else          
-                        }  
-                        
-                        else{                               // La ronda que recibo es inferior a la última que haya visto.
-                            // Indico al nodo que envió la promesa que ya me he comprometido con un valor y una ronda mayor
-                            await this.enviar(["PROMESA",this.ronda ,this.valorPropuesto], [orig], this.id);  
-                        }   
+                            if(this.aceptado) {
+                                await this.enviar(["PROMESA",this.ronda ,this.valorPropuesto], [orig], this.id);    //Ya estaba comprometido
+                            }  
+                            else await this.enviar(["PROMESA",this.ronda,null], [orig], this.id);      // else      
+                        } 
                     }
 
                     else if(msg[0] == "PROPUESTA"){         // Tras comprometerse con un líder, recibo el valor del consenso
-                        if(msg[1] > this.ronda){           // Ronda mayor, por lo tanto debo considerar este mensaje como nuevo compromiso
+                        this.aceptado = true;
+                        if(msg[1] >= this.ronda){           // Aceptado
                             this.ronda = msg[1];
                             this.valorPropuesto = msg[2];
-                            UI.setComprometido(this.id);
-                            //setPropuesto(this.id)           //Cambiamos el color a amarillo para que sepamos que ya ha obtenido un valor
-                            
+                            this.aceptado = true;
+                            UI.setComprometido(this.id);  //Cambiamos el color a amarillo para que sepamos que ya ha obtenido un valor       
+
                             //Envío del mensaje ACEPTACION que cofirma que hemos recibido el valor a consensuar a todos los demás nodos. (Líder incluido)
-                            var dest = [];
-                            for(let i = 0; i<Paxos.nodos.length ; i++){
-                                dest.push(Paxos.nodos[i].id);
-                            }
-                            setPropuesto(this.id);
-                            await this.enviar(["ACEPTACION",this.ronda, this.valorPropuesto], dest, this.id)
-                        }
-                        else{
-                            this.valorPropuesto = msg[2];
                             var dest = [];
                             for(let i = 0; i<Paxos.nodos.length ; i++){
                                 dest.push(Paxos.nodos[i].id);
@@ -108,49 +98,48 @@ class Nodo {
                             UI.setPropuesto(this.id);
                             await this.enviar(["ACEPTACION",this.ronda, this.valorPropuesto], dest, this.id)
                         }
+                        /*else{
+                            this.valorPropuesto = msg[2];
+                            var dest = [];
+                            for(let i = 0; i<Paxos.nodos.length ; i++){
+                                dest.push(Paxos.nodos[i].id);
+                            }
+                            UI.setPropuesto(this.id);
+                            await this.enviar(["ACEPTACION",this.ronda, this.valorPropuesto], dest, this.id)
+                        }*/
 
                         this.contadorMensajes ++;
                         if(this.contadorMensajes >= Paxos.quorum){
                             UI.setConsenso(this.id);
                             UI.escribeLog(2, this.id)  
                             Paxos.consensoFinal();
-                        }
-                        
+                        }  
                     }
 
                     else if(msg[0] == "ACEPTACION"){        //Mensaje recibido por parte de los demás nodos de la red que confirman en valor de consenso.
-                        this.contadorMensajes++;
-                        if(this.contadorMensajes >= Paxos.quorum){  //Consenso
-                            //this.aceptado = false;
-                            UI.setConsenso(this.id);
-                            UI.escribeLog(2, this.id)  
-                            Paxos.consensoFinal();
-                        }     
+                        if(msg[1] == this.ronda){
+                            this.contadorMensajes++;
+                            if(this.contadorMensajes >= Paxos.quorum){  //Consenso
+                                UI.setConsenso(this.id);
+                                UI.escribeLog(2, this.id)  
+                                Paxos.consensoFinal();
+                            }     
+                        }
                     }
                 } //FIN aceptador
 
                 //Estado 2: Proponente: envía el mensaje de preparación y recibe las promesas por parte de los aceptadores. Al recibir una mayoría se sitúa como líder.
-                else if(this.estado == "PROPONENTE"){
+                else if(this.estado == "PROPONENTE" || this.estado == "LIDER" ){ //(Idéntico)
                     if(msg[0] == "PROMESA"){                // Mensaje enviado por un aceptador que confirma su promesa a aceptar el valor que envíe este nodo si se convierte en líder
                         this.contadorMensajes++;            // De consenso
-                        //console.log("ACEPTADORES ID"+this.id+" " + this.contadorMensajes);
-                        if(msg[1] > this.ronda){            // En este caso, el nodo ya se había comprometido con un proponente con una ronda mayor, por lo tanto este nodo copia la ronda y el valor
-                            this.ronda = msg[1];            // y lo envía a los demás nodos.
-                            if(msg[2] != null) this.valorPropuesto = msg[2];
-                            this.contadorMensajes = 2;      //Él mismo y el recibido.
-
-                            var dest = [];
-                            for(let i = 0; i<Paxos.nodos.length ; i++){
-                                dest.push(Paxos.nodos[i].id);
+                        if(msg[2] != null){
+                            if(msg[1] > this.ronda){
+                                this.valorPropuesto = msg[2];
                             }
-                            UI.setPropuesto(this.id);
-                            await this.enviar(["ACEPTACION",this.ronda, this.valorPropuesto], dest, this.id)
-                            //setPreparado(this.id);
-                            
                         }
+                            
                         else if(this.contadorMensajes >= Paxos.quorum){
-                            UI.setLider(this.id, this.ronda);
-                            this.contadorMensajes = 1;
+                            
                             let valorTemp;
                             //Lo reseteamos y lo usamos para esperar al quorum de mensajes de los demás nodos.
                             this.contadorMensajes = 1;
@@ -160,46 +149,36 @@ class Nodo {
                                 //Un valor aleatorio de la lista de cadenas de texto
                                 valorTemp = Paxos.valoresProponer[Math.floor(Math.random() * Paxos.valoresProponer.length)];
                                 this.valorPropuesto = valorTemp;
-                                
                             }
-
-                            var dest = [];
-                            for(let i = 0; i<Paxos.nodos.length ; i++){
-                                dest.push(Paxos.nodos[i].id);
+                            
+                            if(this.estado == "PROPONENTE"){ //Si ya soy lider ya lo he enviado
+                                var dest = [];
+                                for(let i = 0; i<Paxos.nodos.length ; i++){
+                                    dest.push(Paxos.nodos[i].id);
+                                }
+                                UI.setLider(this.id, this.ronda);
+                                await this.enviar(["PROPUESTA", this.ronda, this.valorPropuesto], dest, this.id)
                             }
-
-                            await this.enviar(["PROPUESTA", this.ronda, this.valorPropuesto], dest, this.id)
                         }
                     }
 
                     else if(msg[0] == "ACEPTACION"){
                         this.contadorMensajes++;
-
                         if(this.contadorMensajes >= Paxos.quorum){
+                            
                             UI.setConsenso(this.id);
                             Paxos.consensoFinal();
                             UI.escribeLog(2, this.id)    
                         }
                     }
                     
-                    //Ya que en esta versión del protocolo un Proponente es a su vez un aprendiz, se da el caso de que un proponente tenga que pasar a ser aceptador
+                    // Caso poco común, pero al tener los nodos todos los roles, puede darse.
                     else if(msg[0] == "PREPARACION"){
                         if(msg[1] > this.ronda){
                             UI.setComprometido(this.id);          // Me he comprometido a un líder.
                             this.ronda = msg[1];
                             await this.enviar(["PROMESA",this.ronda,null], [orig], this.id);     
                         }        
-                    }
-                }
-
-                else if(this.estado == "LIDER"){
-                    if(msg[0] == "ACEPTACION"){
-                        this.contadorMensajes++;
-                        if(this.contadorMensajes >= Paxos.quorum){
-                            UI.setConsenso(this.id);
-                            Paxos.consensoFinal();
-                            UI.escribeLog(2, this.id)    
-                        }
                     }
                 }
             }
@@ -256,7 +235,6 @@ class Nodo {
                 this.ronda = nuevaRonda;
             }
             else{
-                console.log(Paxos.rondaGlobal)
                 Paxos.rondaGlobal = Paxos.rondaGlobal + 1;
                 this.ronda = Paxos.rondaGlobal;
             };

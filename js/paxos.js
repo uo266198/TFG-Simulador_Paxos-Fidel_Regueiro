@@ -90,7 +90,6 @@ class Paxos{
             for(let i=0; i<this.numNodos; i++){
                 if(this.nodos[i].consenso){
                     contadorConsenso++
-                    console.log("Consensos: "+contadorConsenso)
                 }
             }
     
